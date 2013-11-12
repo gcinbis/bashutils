@@ -32,10 +32,7 @@ echo -e "x =2;\ndsaf = 4\nfasd_asda=2 = 2121\n as+= 2 =12 = 1;" | alignassign
 echo -e "x(x==2)=3\ny+= 3" | alignassign
 echo -e "x(x==2)=3\ny+= 3" | alignassign -e
 
-TODO
--g  Align each group of aligns separately. Separator is any line without assignment operation in it.
-
-SEE alignassign aligntable
+SEE aligntable
 
 R.G.Cinbis, March 2013
 '''
