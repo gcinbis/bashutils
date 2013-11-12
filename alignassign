@@ -1,0 +1,113 @@
+#!/usr/bin/python
+#
+# Use "alignassign -h" to get help.
+
+import sys
+import re
+
+def printhelp():
+
+    print r'''
+Align lines coming from stdin by adding/removing spaces such that assignment 
+statements (eg, "a=b") in codes are aligned with at least one space before each operator.
+
+Also recognizes the following operators as compound assign operators:
+   +=, -=, *=, /=, \=, %=, |=, ^=, <<=, >>=
+
+The following are recognized as comparison operators and not used in alignment by default:
+   ==, ~=, !=, <=, >=, ===, !==
+
+Using "-e" switch enables the use of comparison operators in alignment.
+
+The number of spaces after the operator is determined by the longest operator such that right-hand side is
+also aligned. Only the very first instance of an operator is considered in each line.
+
+Never pass a full file to this function, it is too risky. Instead, use it to filter a number of selected lines
+under vim,etc.
+
+"-h" switch prints this help.
+
+EXAMPLE
+echo -e "x =2;\ndsaf = 4\nfasd_asda=2 = 2121\n as+= 2 =12 = 1;" | alignassign
+echo -e "x(x==2)=3\ny+= 3" | alignassign
+echo -e "x(x==2)=3\ny+= 3" | alignassign -e
+
+TODO
+-g  Align each group of aligns separately. Separator is any line without assignment operation in it.
+
+SEE alignassign aligntable
+
+R.G.Cinbis, March 2013
+'''
+
+
+# Copy lines from stdin
+def get_stdin_lines():
+    lines = []
+    for line in sys.stdin:
+        line = line.rstrip('\n')  # remove newline at the end.
+        lines.append(line)
+    return lines
+
+
+# main loop           
+def process(RecognizeComparison):
+    # initialize
+    lines  = get_stdin_lines();
+
+    # r prefix avoids preprocessing string, 
+    #   group <B> matches to spaces before
+    #   group <O> is matches to the operator 
+    #   group <A> is matches to spaces after
+    # we have to escape "-" and "\" in the character list
+
+    if RecognizeComparison:
+        # recognize all:  +=, -=, *=, /=, \=, %=, |=, ^=, <<=, >>=, ==, ~=, !=, <=, >=, ===, !==
+        prog   = re.compile(r'(?P<B>[ ]*)(?P<O>(([~!+\-\\*/<>%|^])|(<<)|(>>))?=+)(?P<A>[ ]*)') 
+    else:
+        # recognize: +=, -=, *=, /=, \=, %=, |=, ^=, <<=, >>=
+        # ignore comparison: ==, ~=, !=, <=, >=, ===, !==
+        #
+        # here we have to make sure that there are surrounding = signs around since we allow exactly one = in <A>
+        prog   = re.compile(r'([^=]|$)(?P<B>[ ]*)(?P<O>(([+\-\\*/%|^])|(<<)|(>>))?=)(?P<A>[ ]*)([^=]|$)') 
+
+    starts = [-1] * len(lines)
+    ends   = [-1] * len(lines)
+    ops    = [None] * len(lines)
+
+    for j in xrange(0,len(lines)):
+        match = prog.search(lines[j]) # matches only to the first instance
+        if match:
+            ops[j]    = match.group('O')
+            starts[j] = match.start('B')  
+            ends[j]   = match.end('A')  
+
+    targetloc = max(starts) + 1
+    maxoplen = 0    # maximum operator length
+    for o in ops:
+        if o:
+            maxoplen = max(maxoplen,len(o))
+
+    # align operators
+    for j in xrange(0,len(lines)):
+        start = starts[j]
+        if start >= 0:
+            old      = lines[j];
+            end      = ends[j]
+            op       = ops[j]
+            lines[j] = old[0:start] + (' ' * (targetloc-start)) + op +  (' ' * (maxoplen-len(op)+1)) + old[end:];
+
+    # print lines
+    for l in lines:
+        print(l)
+
+
+if '-h' in sys.argv:
+    printhelp()
+elif '-e' in sys.argv:
+    process(True)
+elif len(sys.argv)>1:
+    printhelp()
+else:
+    process(False)
+
