@@ -1,0 +1,350 @@
+#!/usr/bin/python
+
+import sys
+import re
+import exceptions
+
+def helpandexit():
+    print r'''
+Aligns lines read from stdin by adding/removing spaces such that columns are
+aligned.  In the input text, two columns must be separated by the <separator>.The
+locations of the columns are determined automatically such that the separators are
+aligned across the lines.
+
+In general, whitespaces between the columns are ignored, except those at the beginning of 
+the lines. Those are assumed to be important and provided for indentation purposes.
+
+COMMON OPTIONS
+-h,--help                    Print help.
+-s "<regexp>"                Use custom column separator. (Default="                                                              ").
+                             Whatever matches as the separator will be used as the separator after alignment.
+                             Separators may vary in length, although this is rarely needed.
+-g,--group                   Logically group rows with different number of columns. Align them independently.
+                             This is very useful when dealing with things like LaTeX tables. (Default=disabled)
+--tex                        Align latex table.
+                             Equivalent to <aligntable -s "&" --group --sepwrap " " " ">
+--texboldmax                 Align latex table and make max-entries bold.
+                             Equivalent to <aligntable -s "&" --group --sepwrap " " " " --maxwrap "\bf " "" 
+                                            -strrep "\\bf" "" --numignore "\\\\" --numignore "\\[A-Za-z]+"
+                                            --numignore "[{}]">
+ADVANCED OPTIONS
+--numignore <regex>          Replace matching subtexts with " " (to avoid mistakenly concatenating multiple numbers) 
+                             just before conversion of an entry to number where necessary (eg, --maxwrap). 
+                             Matching subtexts will be preserved in the final output. Multiple --numignore
+                             can be provided.
+--strrep <regex> <string>    Before running the alignment, replace each matching entry of <regex> with <string> 
+                             within each line. Multiple strrep options are applied in the provided order.
+--atleastfirst               Indendatation for each column cannot be smaller than the original indendation
+                             of the first row of that column. (Default=disabled)
+--sepwrap <prefix> <suffix>  Wrap each separator with the provided text. (Default: <prefix>="" <suffix>="").
+--maxwrap <prefix> <suffix>  Wrap the maximum numeric value within each column. Intentionally does not 
+                             support subtext (other than whitespace trimming); instead use --strrep and 
+                             --numignore to clean-up irrelevant strings before conversion to number.
+--minwrap <prefix> <suffix>  Similar to --maxwrap, wraps minimum value within each column. (Default=disabled)
+
+Note that all string arguments are processed as "raw strings" without python-decoding.
+
+EXAMPLES
+* A basic example:
+    echo -e "first  second     third\n fd  fourth fifth  sixth" | aligntable
+* Providing -s " &. " would use any of the following as the separator: " &x "," &y ",... etc.
+* In Vim, type the following to process the current file:
+    :%!aligntable <options>
+
+SEE alignassign aligntable
+
+R. Gokberk Cinbis, March 2013
+    '''
+    sys.exit()
+
+'''
+NOT IMPLEMENTED YET
+* For lines with fewer columns, given an option to match columns to the closest original column by looking at the
+preceding lines. This is useful for aligning comments providing the parameters.
+'''
+
+# Copy lines from stdin
+def get_stdin_lines():
+    lines = []
+    for line in sys.stdin:
+        line = line.rstrip('\n')  # remove newline at the end.
+        lines.append(line)
+    return lines
+
+# Remove first part before the separator.
+# If lines[i] does not have separator, seps[i]=None and lines[i]='' after processing.
+# prevorglens is the non-trimmed length of prevs entries.
+def separate_lines(prog,lines):
+    nline = len(lines)
+    prevs = [None] * nline
+    prevorglens = [None] * nline
+    seps  = [None] * nline
+    for li in xrange(0,nline):
+        l = lines[li]
+        m = prog.search(l)
+        if m:
+            prev__      = l[:m.start()]
+            prevorglens = len(prev__)
+            prevs[li]   = prev__.rstrip() # do not strip(): we want to keep the spaces at the beginning of the lines.
+            seps[li]    = l[m.start():m.end()] # do not strip separators: space itself can be the separator.
+            lines[li]   = l[m.end():].strip()
+        else:
+            prevs[li] = l.rstrip()
+            lines[li] = ''
+    return prevorglens,prevs,seps
+            
+# Return the number of columns in each line, which is the "#separator + 1".
+def get_num_col(prog,lines):
+    ncol = [0] * len(lines)
+    # fails unless we have a very smart regexp: ncol[li] = len( prog.findall(lines[li]) ) + 1
+    for li in xrange(0,len(lines)):
+        l = lines[li]
+        while True:
+            m = prog.search(l)
+            if m:
+                ncol[li] += 1
+                l=l[m.end():].strip()
+            else:
+                break
+    return ncol
+
+# return true if list has -1 in all entries.
+def all_empty(arr):
+    for a in arr:
+        if a!='':
+            return False
+    return True
+
+# first non-negative entry
+def firstnonneg(arr):
+    for a in arr:
+        if a>=0:
+            return a
+    return None
+
+
+# returns a list of numeric entries. Returns "None" for non-numeric entries or those
+# with multiple numbers enclosed.
+#
+# subtext numbers: We can consider using only the numeric sub-text automatically.
+# However, that is likely to cause compilications: For example, a text like "Foo[2]"
+# may be interpreted as number 2. Then, we have to declare which columns should be updated,
+# which quickly becomes unusable.
+# 
+# Instead of starting with sth that is too-flexible, I instead require entry to be directly
+# numeric AFTER applying --strrep and --numignore.
+#
+# Returns nums,starts,ends indicating numbers and corresponding sub-text start/end indices.
+def txt2nums(txts,numignore):
+    nums    = [None] * len(txts)
+    starts  = [None] * len(txts)
+    ends    = [None] * len(txts)
+    for li in xrange(0,len(txts)):
+        orgtxt = txts[li]
+
+        # pre process with numignore
+        newtxt = orgtxt
+        for p in numignore: # numignore are precompiled to programs.
+            newtxt = p.sub(" ",newtxt)
+        newtxt = newtxt.strip() # remove surrounding whitespace, possibly due to numignore.
+
+        # try convert
+        try:
+            nums[li] = float(newtxt) # float("") throws exception.
+        except exceptions.ValueError:
+            continue
+
+        # find substring indices
+        ind = findtxt(orgtxt,newtxt)
+        if len(ind)==1:
+            starts[li] = ind[0]
+            ends[li] = ind[0] + len(newtxt)
+        else:
+            nums[li] = None
+
+    return nums,starts,ends
+
+# find indices {i} where nums(i)==val.
+def findval(nums,val):
+    return [a for a,b in enumerate(nums) if b==val]
+
+# find substring start indices where txt[i:i+len]==subtxt
+def findtxt(txt,subtxt):
+    out = []
+    starti = 0
+    if txt=="":
+        raise Exception("There Inf-many empty substrings!")
+    while True:
+        i = txt.find(subtxt,starti)
+        if i < 0:
+            return out
+        else:
+            out.append(i)
+            starti = i + len(subtxt)
+
+# apply wrap option
+def applywrap(prevs,opt,optwrap,numignore):
+    if optwrap==None or prevs==[]:
+        return 
+    nums,starts,ends = txt2nums(prevs,numignore)
+    if opt=='max':
+        val = max(nums)
+    elif opt=='min':
+        val = min(nums)
+    else:
+        raise Exception("Unrecognized opt for applywrap()")
+    if val==None:
+        return # all entries in nums is None.
+    lines = findval(nums,val) # excludes lines where nums[i]=None.
+    for li in lines:
+        s = starts[li]
+        e = ends[li]
+        prevs[li] = prevs[li][:s] + optwrap[0] + prevs[li][s:e] + optwrap[1] + prevs[li][e:]
+
+# process single group where linemask defines the number of lines to be processed
+def processgroup(prog,separator,sepwrap,maxwrap,minwrap,lines,atleastfirst,numignore):
+    # align each column iteratively
+    nline = len(lines)
+    outlines = [''] * nline
+    while all_empty(lines)==False:
+        prevorglens,prevs,seps = separate_lines(prog,lines)
+
+        #print("=======")
+        #print(prevs)
+        #print(seps)
+
+        # add min-max wrappers before getting alignmnet info
+        applywrap(prevs,'max',maxwrap,numignore)
+        applywrap(prevs,'min',minwrap,numignore)
+
+        # add separator wrappers
+        for j in xrange(0,nline):
+            if seps[j]==None:
+                seps[j]=''
+            else:
+                seps[j] = sepwrap[0] + seps[j] + sepwrap[1]
+
+        # get alignment info after manipulations on the "prev" entries (ie. current column text) and "sep" entries.
+        maxprevlen = max([len(x) for x in prevs])
+        maxseplen = max([len(x) for x in seps]) # sep=None if unavaible. 
+        if atleastfirst: # first occurrence of the column is allowed to override this, if denotes a larger spacing
+            for j in xrange(0,nline):
+                if seps[j]!=None:
+                    maxprevlen = max(maxprevlen,prevorglens[j])
+                    break
+
+        for j in xrange(0,nline):
+            nspace_before = maxprevlen-len(prevs[j])
+            nspace_after  = maxseplen-len(seps[j])
+
+            outlines[j] += prevs[j] + (' ' * nspace_before) + seps[j] + (' ' * nspace_after)
+
+    outlines = [x.rstrip() for x in outlines] # remove trailing whitespaces
+    return outlines
+
+# preprocess: find & replace.
+def apply_strrep(strrep,lines):
+    for x in strrep:
+        p = re.compile(x[0])
+        txt = x[1]
+        for li in xrange(0,len(lines)):
+            lines[li] = p.sub(txt,lines[li])
+
+# main process function
+def process(separator,sepwrap,maxwrap,minwrap,groupbyncol,atleastfirst,strrep,numignore):
+    
+    lines = get_stdin_lines() # get lines
+    apply_strrep(strrep,lines) # preprocess: --strrep
+    prog  = re.compile(separator) # separator regexp
+    numignore = [re.compile(x) for x in numignore] # precompile --numignore entries
+
+    if groupbyncol:
+        ncols = get_num_col(prog,lines) # number of columns in each line
+        unq_ncols = list(set(ncols))
+        for ncol in unq_ncols:
+            lineind = []
+            curlines = []
+            for j in xrange(0,len(lines)):
+                if ncols[j]==ncol:
+                    lineind.append(j)
+                    curlines.append(lines[j])
+            curlines = processgroup(prog,separator,sepwrap,maxwrap,minwrap,curlines,atleastfirst,numignore)
+            for j in xrange(0,len(lineind)):
+                lines[lineind[j]] = curlines[j]
+    else:
+        lines = processgroup(prog,separator,sepwrap,maxwrap,minwrap,lines,atleastfirst,numignore)
+
+    # print lines
+    for l in lines:
+        print(l)
+
+
+# get the i-th argument
+def getarg(argi):
+    if argi >= len(sys.argv):
+        print 'incomplete argument list'
+        helpandexit()
+    return sys.argv[argi]
+
+
+####### main #######
+
+# defaults
+separator    = '  '     # <regex>
+sepwrap      = ['','']  # [<prefix>,<suffix>]
+maxwrap      = None     # [<prefix>,<suffix>]
+minwrap      = None     # [<prefix>,<suffix>]
+numignore    = []       # Array of regular expressions: [<regex1>,<regex2>,...]
+groupbyncol  = False    # False | True
+atleastfirst = False    # False | True
+strrep       = []       # array of (<regex>,<string>) tuples.
+
+# parse arguments
+ai = 1
+while ai < len(sys.argv):
+    a = getarg(ai)
+    if a=='-h' or a=='--help':
+        helpandexit()
+    elif a=='-s':
+        ai += 1
+        separator = getarg(ai)
+    elif a=='-g' or a=='--group':
+        groupbyncol = True
+    elif a=='--atleastfirst':
+        atleastfirst = True
+    elif a=='--sepwrap':
+        sepwrap = [getarg(ai+1),getarg(ai+2)]
+        ai += 2
+    elif a=='--tex':
+        separator = "&"
+        groupbyncol = True
+        sepwrap = [r" ",r" "]
+    elif a=='--texboldmax':
+        separator = "&"
+        groupbyncol = True
+        sepwrap = [r" ",r" "] # to replicate console argument, I use raw-strng literals here in every possible place. 
+        maxwrap = [r"\bf ",r""]
+        strrep.append((r"\\bf",r""))
+        numignore.append(r"\\\\")
+        numignore.append(r"\\[A-Za-z]+")
+        numignore.append(r"[{}]")
+    elif a=='--maxwrap':
+        maxwrap = [getarg(ai+1),getarg(ai+2)]
+        ai += 2
+    elif a=='--minwrap':
+        minwrap = [getarg(ai+1),getarg(ai+2)]
+        ai += 2
+    elif a=='--strrep':
+        strrep.append((getarg(ai+1),getarg(ai+2)))
+        ai += 2
+    elif a=='--numignore':
+        numignore.append(getarg(ai+1))
+        ai += 1
+    else: 
+        print 'unrecognized argument!'
+        helpandexit()
+    ai += 1
+
+process(separator,sepwrap,maxwrap,minwrap,groupbyncol,atleastfirst,strrep,numignore)
+
+
