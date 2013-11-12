@@ -51,7 +51,7 @@ EXAMPLES
 * In Vim, type the following to process the current file:
     :%!aligntable <options>
 
-SEE alignassign aligntable
+SEE alignassign 
 
 R. Gokberk Cinbis, March 2013
     '''
