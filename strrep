@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e   # exit on error 
+
+# My find and replace function. Enclose patterns with spaces using " ".
+# Example: strrep "old txt" WOW *
+
+args=("$@")  # preserves ".." groups
+narg=${#args[@]}
+
+if [ $narg -lt 2 ]
+then
+    echo "Usage: strrep <old> <new> [<filenames>]"
+    echo "<old>: A regular expression (case sensitive)"
+    echo "<new>: New string to replace matches"
+    echo "If no filename is passed, stdin will be used."
+    echo "Gokberk Cinbis"
+    exit 1
+fi
+
+if [ $narg -lt 3 ]
+then
+    perl -p -w -e "s/$1/$2/g;" 
+else
+    # echo Executing: perl -pi -w -e "s/$1/$2/g;"  ${args[@]:2:$narg}
+    perl -p -i -w -e "s/$1/$2/g;"  ${args[@]:2:$narg}
+fi
+
