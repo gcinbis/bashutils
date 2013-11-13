@@ -2,7 +2,7 @@
 
 if [ $# -ne 1 ]
 then
-    echo "Usage: myvideo2mp3 <filename>"
+    echo "Usage: video2mp3 <filename>"
     echo "Extension of the <filename> will be replaced with 'mp3'. If there is no extension, .mp3 will be added."
     exit 1 
 fi

@@ -4,7 +4,7 @@
 
 if [ $# -ne 1 ]
 then
-    echo "Usage: myvideo2mp4 <filename.ext>"
+    echo "Usage: video2mp4 <filename.ext>"
     echo "Produces <filename.ipad.mp4>"
     exit 1 
 fi
