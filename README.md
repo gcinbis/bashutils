@@ -9,4 +9,5 @@ Standalone utilities.
 * myvideo2mp3:   Convert video file to mp3.
 * myvideo2mp4:   Convert video file to mp4.
 * myvideo2ipad:  Convert video file to iPad-compatible format (not perfect, though).
+* strrep:        Find and replace patterns in stdin or files.
 
