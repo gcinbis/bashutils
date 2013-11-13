@@ -16,7 +16,7 @@ the lines. Those are assumed to be important and provided for indentation purpos
 
 COMMON OPTIONS
 -h,--help                    Print help.
--s "<regexp>"                Use custom column separator. (Default="                                                              ").
+-s "<regexp>"                Use custom column separator. (Default="  ").
                              Whatever matches as the separator will be used as the separator after alignment.
                              Separators may vary in length, although this is rarely needed.
 -g,--group                   Logically group rows with different number of columns. Align them independently.
