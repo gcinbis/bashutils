@@ -1,0 +1,75 @@
+#!/bin/bash
+set -e   # exit on error 
+
+# Convert equation into eps with high-resolution preview image so that
+#   - eps figure has the right size.
+#   - figure's preview image can be upscaled quite a bit, if necessary.
+#   - can be used with openoffice,powerpoint which use only the preview image instead of the actual eps content.
+#
+# Example: eq2eps "x^2" out # generates out.eps
+#
+# Use instead eq2png when transparent background is neeeded.
+# Problem: 
+# In open-office, eps files are not rendered, instead their embedded preview images are rendered.
+# However, even though preview file contains transparent background, it is set to "white" in open office!
+# I've also tried to manual add transparent tiff as preview (epstool --add-user-preview x.tif x.eps xuser.eps)
+# epstool does exactly what I want: gets the image and fixes its size to the one defined by eps file, which 
+# is in inches, instead of pixels (as in png). However, it is the open-office bug that doesn't handle transparent
+# backgrounds.
+#
+# I've confirmed that the output size is exactly correct.
+#
+# Gokberk Cinbis, June 2012
+
+if [ $# -ne 2 ]
+then
+    eq2help
+    return 1
+fi
+
+# temporary file
+xfile=`mktemp -u`
+xdir=`dirname "$xfile"`
+if [ -z "$xfile" ]; # unset or empty
+then
+    echo "ERROR tempfile failed"
+    exit 1 
+fi
+
+# create latex file
+# we have to quote to avoid expansion if arguments have spaces
+eq2tex "$1" "$xfile"
+
+# -- this fails whenever the output is scaled with pgfpagesuselayout --
+#latex -output-directory="$xdir" "$xfile.tex"
+## -D does not change the ps file size or geometry. I don't know if it has any effect in our case!
+#dvips -q -Z -D 600 -E "$xfile.dvi" -o "$xfile.ps"
+## epstool didn't work well on the output of ps2eps or ps2epsi:
+##   ps2eps -P "$xfile.ps"
+##   ps2epsi "$xfile.ps" "$xfile.epsi"
+## dpi does not change the size of the figure. instead it embeds a higher-res image at the same size,
+## which can be useful if the output will be enlargened.
+#epstool --dpi 600 -t6p "$xfile.ps" "$xfile.eps2"
+
+pdflatex -output-directory="$xdir" "$xfile.tex"
+pdfcrop --nodebug --noverbose "$xfile".pdf "$xfile"2.pdf
+pdftops -eps "$xfile"2.pdf $xfile.ps
+
+# dpi 600
+# --gs-args "-dTextAlphaBits=4 -dGraphicsAlphaBits=4"
+epstool --dpi 600 -t6p "$xfile.ps" "$xfile.eps2"
+
+# copy
+/bin/mv -f "$xfile.eps2" "$2.eps"
+
+# cleanup
+rm -f "$xfile"
+rm -f "$xfile".log
+rm -f "$xfile".aux
+rm -f "$xfile".tex
+rm -f "$xfile".dvi
+rm -f "$xfile".ps
+rm -f "$xfile".pdf
+rm -f "$xfile"2.pdf
+rm -f "$xfile".eps*
+

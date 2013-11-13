@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]
+then
+    echo "Usage: myvideo2mp4 <filename>"
+    echo "Extension of the <filename> will be replaced with 'mp4'. If there is no extension, .mp4 will be added."
+    exit 1 
+fi
+
+out="${1%.*}.mp4"
+
+# ffmpeg -i "$1" -sameq -ar 22050 -vcodec libx264 "$out"
+echo ffmpeg -i "$1" -c:v libx264 -crf 23 -copyts -q:a 100 "$out"
+ffmpeg -i "$1" -c:v libx264 -crf 23 -copyts -q:a 100 "$out"
+
+

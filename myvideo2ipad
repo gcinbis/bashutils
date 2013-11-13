@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Reference: https://develop.participatoryculture.org/index.php/ConversionMatrix
+
+if [ $# -ne 1 ]
+then
+    echo "Usage: myvideo2mp4 <filename.ext>"
+    echo "Produces <filename.ipad.mp4>"
+    exit 1 
+fi
+
+out="${1%.*}.ipad.mp4"
+
+echo Converting "$1" to "$2".
+
+# Ipad2: 1024x768
+# Ipad3: 2048x1536 (Retina)
+ffmpeg -i "$1" -acodec aac -ac 2 -strict experimental -ab 160k -s 1024x768 -vcodec libx264 -preset slow -profile:v baseline -level 30 -maxrate 10000000 -bufsize 10000000 -b:v 1200k -f mp4 -threads 0 "$out"
+

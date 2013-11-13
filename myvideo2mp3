@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]
+then
+    echo "Usage: myvideo2mp3 <filename>"
+    echo "Extension of the <filename> will be replaced with 'mp3'. If there is no extension, .mp3 will be added."
+    exit 1 
+fi
+
+
+# ffmpeg -i video.mp4 -b:a 192K -vn music.mp3
+
+# note: how to get filename and the extension
+# file="<filename>.<ext>"
+# echo "filename: ${file%.*}"
+# echo "extension: ${file##*.}" 
+# These may fail if there is no "." in the filename. Can be used
+# with basename()
+
+echo ffmpeg -i "$1" -b:a 192K -vn "${1%.*}.mp3"
+ffmpeg -i "$1" -b:a 192K -vn "${1%.*}.mp3"
+
+

@@ -1,0 +1,68 @@
+#!/bin/bash
+set -e
+
+# Convert equation into png.
+# Example: eq2png "x^2" out # generates out.png
+#
+# If transparent background is not needed, eq2eps is probably easier to use.
+#
+# Problem: Since png format does not allow defining the size in pixels, the output 
+# will have to be resized manually after insertion. This is definitely not nice.
+# For now, it creates output at 2x resolution, which should be resized manually.
+#
+# Gokberk Cinbis, June 2012
+
+if [ $# -ne 2 ]
+then
+    eq2help
+    exit 1
+fi
+
+# temporary file
+xfile=`tempfile`
+xdir=`dirname "$xfile"`
+if [ -z "$xfile" ]; # unset or empty
+then
+    echo "ERROR tempfile failed"
+    exit 1 
+fi
+
+# create latex file
+# we have to quote to avoid expansion if arguments have spaces
+eq2tex "$1" "$xfile"
+
+# -- this fails whenever the output is scaled with pgfpagesuselayout --
+#latex -output-directory="$xdir" "$xfile.tex"
+### -D does not change the ps file size or geometry. I don't know if it has any effect in our case!
+#dvips -q -Z -D 600 -E "$xfile.dvi" -o "$xfile.ps"
+#convert -colorspace RGB -density 192 "$xfile.ps" "$2.png"
+
+#  convert: -density defines the actual quality of the image. 96 dpi will give (in ooffice) the exact sized
+#  outputs but will have poor quality. So, I define 2x quality and do 1/2 resizing within openoffice.
+
+pdflatex -output-directory="$xdir" "$xfile.tex"
+pdfcrop --nodebug --noverbose "$xfile".pdf "$xfile"2.pdf
+pdftops -eps "$xfile"2.pdf $xfile.ps
+convert -colorspace RGB -density 192 "$xfile.ps" "$2.png"
+
+# See
+# http://www.imagemagick.org/script/command-line-options.php#density
+# http://www.imagemagick.org/script/command-line-processing.php#geometry
+# http://www.imagemagick.org/script/command-line-options.php#resample
+# -geometry also, unfortunately, changes the output quality as well.
+
+# not good.
+#ps2pdf "$xfile.ps" "$xfile.pdf"
+#pdftoppm -cropbox -r 96 -png "$xfile.pdf" "$xfile"
+#/bin/mv -f "$xfile-1.png" "$2.png"
+
+# cleanup
+rm -f "$xfile"
+rm -f "$xfile".log
+rm -f "$xfile".aux
+rm -f "$xfile".tex
+rm -f "$xfile".dvi
+rm -f "$xfile".ps
+rm -f "$xfile".pdf
+rm -f "$xfile"2.pdf
+

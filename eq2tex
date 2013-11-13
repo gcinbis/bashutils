@@ -1,0 +1,78 @@
+#!/bin/bash
+set -e   # exit on error 
+
+# Used by eq2* 
+# 
+# See currently hard-coded font options.
+#
+# Use EQFONTSZ for font size.
+#
+# Gokberk Cinbis, June 2012
+
+# Write a wrapper around the equation to get tex file.
+#function eq2tex() {
+#echo "EQUATION:" "$1"
+#echo "NAME:" "$2"
+
+if [ $# -ne 2 ]
+then
+    eq2help
+    #return 1
+    exit 1 
+fi
+
+out="$2".tex
+
+# font size
+# not needed anymore: local fontsz
+if [ -z "$EQFONTSZ" ]
+then 
+    fontsz=12
+else
+    fontsz="$EQFONTSZ"
+fi
+echoblue Font size=$fontsz
+
+# create latex file
+echo "\documentclass[12pt,a4paper]{article}" > "$out"
+echo "\usepackage{pgfpages}" >> "$out"
+echo "\usepackage{amsmath}" >> "$out"
+echo "\usepackage{amssymb}" >> "$out"
+
+# NOTE MANUALLY DEFINE FONT, todo: make this environment variable.
+#echo "\usepackage{mathptmx}" >> "$out" # times
+echo "\usepackage[cm]{sfmath}" >> "$out" # computer modern sans serif, like beamer.
+
+# use page scaling to set the size of the font.
+# a4 is 11.7in x 8.3in
+mywidth=`echo "scale=2;8.3*${fontsz}/12"|bc`
+myheight=`echo "scale=2;11.7*${fontsz}/12"|bc`
+echo "\pgfpagesuselayout{resize to}[physical paper width=${mywidth}in,physical paper height=${myheight}in]" >> "$out"
+
+echo "\pagestyle{empty}" >> "$out"
+echo "\begin{document}" >> "$out"
+echo "\begin{equation*}" >> "$out"
+echo "$1" >> "$out"
+echo "\end{equation*}" >> "$out"
+echo "\end{document}" >> "$out"
+
+cat "$out"
+#}
+
+################ obsolete ################ 
+
+# -- these are not good since they require fonts explicitly. instead we should scale the whole thing --
+#echo "\documentclass[extrafontsizes,${fontsz}pt]{memoir}" > "$out" # works not as I want
+#\DeclareMathSizes{display size}{text size}{script size}{scriptscript size}.
+#echo "\DeclareMathSizes{12pt}{${fontsz}}{${fontsz}}{${fontsz}}" >> "$out"
+#echo "\fontsize{${fontsz}}{1}\selectfont" >> "$out"
+
+# -- example to get arial font in text, but doesnot modify equation fonts! --
+#echo "\renewcommand{\rmdefault}{phv}" > "$out"
+#echo "\renewcommand{\sfdefault}{phv}" > "$out"
+# similarly, sans serif
+# \renewcommand{\familydefault}{\sfdefault}
+
+
+
+

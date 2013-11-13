@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+# Gokberk Cinbis, June 2012
+
+#function eq2help() {
+    echo "eq2tex <equation> <outname>"
+    echo "Create a simple tex file wrapper around the equation"
+    echo ""
+    echo "eq2eps <equation> <out>"
+    echo "Generate <out>.eps file containing a given latex equation."
+    echo ""
+    echo "eq2png <equation> <out>"
+    echo "Generate <out>.png file containing a given latex equation."
+    echo ""
+    echo "General"
+    echo "Use EQFONTSZ to set font size (default=12)"
+    echo "Can use ANSI-C string in BASH to send newline character (http://wiki.bash-hackers.org/syntax/quoting)"
+    echo ""
+    echo "Gokberk Cinbis, June 2012"
+#}
