@@ -22,11 +22,11 @@ COMMON OPTIONS
 -g,--group                   Logically group rows with different number of columns. Align them independently.
                              This is very useful when dealing with things like LaTeX tables. (Default=disabled)
 --tex                        Align latex table.
-                             Equivalent to <aligntable -s "&" --group --sepwrap " " " ">
+                             Equivalent to <aligntable -s "&" --group --sepwrap " " " " --nomaxif "^[ ]*[%]">
 --texboldmax                 Align latex table and make max-entries bold.
                              Equivalent to <aligntable -s "&" --group --sepwrap " " " " --maxwrap "\bf " "" 
                                             -strrep "\\bf" "" --numignore "\\\\" --numignore "\\[A-Za-z]+"
-                                            --numignore "[{}]">
+                                            --numignore "[{}]" --nomaxif "^[ ]*[%]">
 ADVANCED OPTIONS
 --numignore <regex>          Replace matching subtexts with " " (to avoid mistakenly concatenating multiple numbers) 
                              just before conversion of an entry to number where necessary (eg, --maxwrap). 
@@ -41,6 +41,8 @@ ADVANCED OPTIONS
                              support subtext (other than whitespace trimming); instead use --strrep and 
                              --numignore to clean-up irrelevant strings before conversion to number.
 --minwrap <prefix> <suffix>  Similar to --maxwrap, wraps minimum value within each column. (Default=disabled)
+--commentsign <string>       Ignore the lines starting with <string> (ignores preceding spaces).
+--nomaxif <regexp>           Do not allow lines containing <regexp> to 
 
 Note that all string arguments are processed as "raw strings" without python-decoding.
 
@@ -50,6 +52,9 @@ EXAMPLES
 * Providing -s " &. " would use any of the following as the separator: " &x "," &y ",... etc.
 * In Vim, type the following to process the current file:
     :%!aligntable <options>
+  And also adding following options to .vimrc can be handy:
+    command! AlignLatexTable        :%!aligntable --tex
+    command! AlignLatexTableBoldMax :%!aligntable --texboldmax --nomaxif "\#NOMAX\#" 
 
 SEE alignassign 
 
@@ -135,12 +140,16 @@ def firstnonneg(arr):
 # numeric AFTER applying --strrep and --numignore.
 #
 # Returns nums,starts,ends indicating numbers and corresponding sub-text start/end indices.
-def txt2nums(txts,numignore):
+def txt2nums(txts,numignore,is_nowrap_line):
     nums    = [None] * len(txts)
     starts  = [None] * len(txts)
     ends    = [None] * len(txts)
     for li in xrange(0,len(txts)):
         orgtxt = txts[li]
+
+        # check if the line should be ignored.
+        if is_nowrap_line[li]:
+            continue # ignore the line
 
         # pre process with numignore
         newtxt = orgtxt
@@ -183,10 +192,11 @@ def findtxt(txt,subtxt):
             starti = i + len(subtxt)
 
 # apply wrap option
-def applywrap(prevs,opt,optwrap,numignore):
+# leave lines with matching nowrapif entries unchanged.
+def applywrap(prevs,opt,optwrap,numignore,is_nowrap_line):
     if optwrap==None or prevs==[]:
         return 
-    nums,starts,ends = txt2nums(prevs,numignore)
+    nums,starts,ends = txt2nums(prevs,numignore,is_nowrap_line)
     if opt=='max':
         val = max(nums)
     elif opt=='min':
@@ -201,11 +211,26 @@ def applywrap(prevs,opt,optwrap,numignore):
         e = ends[li]
         prevs[li] = prevs[li][:s] + optwrap[0] + prevs[li][s:e] + optwrap[1] + prevs[li][e:]
 
+# if i-th line should be ignored from the process, then sets outlines[i]=lines[i] and lines[i]=''
+def ignore_lines(lines,outlines,commentsign):
+    nline = len(lines)
+    for j in xrange(0,nline):
+        x = lines[j].lstrip()
+        for cs in commentsign:
+            if x.startswith(cs):
+                outlines[j]=lines[j]
+                lines[j] = ''
+                break
+
 # process single group where linemask defines the number of lines to be processed
-def processgroup(prog,separator,sepwrap,maxwrap,minwrap,lines,atleastfirst,numignore):
+def processgroup(prog,separator,sepwrap,maxwrap,minwrap,lines,atleastfirst,numignore,commentsign,nomaxif):
     # align each column iteratively
     nline = len(lines)
     outlines = [''] * nline
+    ignore_lines(lines,outlines,commentsign)
+    is_nomaxline = [any([p.search(l)!=None for p in nomaxif]) for l in lines] # find out which lines shouldn't be processed for "maxwrap".
+    #for i in is_nomaxline:
+    #    print(i)
     while all_empty(lines)==False:
         prevorglens,prevs,seps = separate_lines(prog,lines)
 
@@ -214,8 +239,8 @@ def processgroup(prog,separator,sepwrap,maxwrap,minwrap,lines,atleastfirst,numig
         #print(seps)
 
         # add min-max wrappers before getting alignmnet info
-        applywrap(prevs,'max',maxwrap,numignore)
-        applywrap(prevs,'min',minwrap,numignore)
+        applywrap(prevs,'max',maxwrap,numignore,is_nomaxline)
+        applywrap(prevs,'min',minwrap,numignore,[False] * nline)
 
         # add separator wrappers
         for j in xrange(0,nline):
@@ -251,12 +276,13 @@ def apply_strrep(strrep,lines):
             lines[li] = p.sub(txt,lines[li])
 
 # main process function
-def process(separator,sepwrap,maxwrap,minwrap,groupbyncol,atleastfirst,strrep,numignore):
+def process(separator,sepwrap,maxwrap,minwrap,groupbyncol,atleastfirst,strrep,numignore,commentsign,nomaxif):
     
     lines = get_stdin_lines() # get lines
     apply_strrep(strrep,lines) # preprocess: --strrep
     prog  = re.compile(separator) # separator regexp
     numignore = [re.compile(x) for x in numignore] # precompile --numignore entries
+    nomaxif = [re.compile(x) for x in nomaxif] # precompile regular expressions
 
     if groupbyncol:
         ncols = get_num_col(prog,lines) # number of columns in each line
@@ -268,11 +294,11 @@ def process(separator,sepwrap,maxwrap,minwrap,groupbyncol,atleastfirst,strrep,nu
                 if ncols[j]==ncol:
                     lineind.append(j)
                     curlines.append(lines[j])
-            curlines = processgroup(prog,separator,sepwrap,maxwrap,minwrap,curlines,atleastfirst,numignore)
+            curlines = processgroup(prog,separator,sepwrap,maxwrap,minwrap,curlines,atleastfirst,numignore,commentsign,nomaxif)
             for j in xrange(0,len(lineind)):
                 lines[lineind[j]] = curlines[j]
     else:
-        lines = processgroup(prog,separator,sepwrap,maxwrap,minwrap,lines,atleastfirst,numignore)
+        lines = processgroup(prog,separator,sepwrap,maxwrap,minwrap,lines,atleastfirst,numignore,commentsign,nomaxif)
 
     # print lines
     for l in lines:
@@ -298,6 +324,8 @@ numignore    = []       # Array of regular expressions: [<regex1>,<regex2>,...]
 groupbyncol  = False    # False | True
 atleastfirst = False    # False | True
 strrep       = []       # array of (<regex>,<string>) tuples.
+commentsign  = []       # Array of comment signs.
+nomaxif      = []       # Array of regular expression strings.
 
 # parse arguments
 ai = 1
@@ -319,6 +347,7 @@ while ai < len(sys.argv):
         separator = "&"
         groupbyncol = True
         sepwrap = [r" ",r" "]
+        # NO, tables become ugly! commentsign.append("%")
     elif a=='--texboldmax':
         separator = "&"
         groupbyncol = True
@@ -328,6 +357,8 @@ while ai < len(sys.argv):
         numignore.append(r"\\\\")
         numignore.append(r"\\[A-Za-z]+")
         numignore.append(r"[{}]")
+        nomaxif.append(r"^[ ]*[%]")
+        # NO, tables become ugly! commentsign.append("%")
     elif a=='--maxwrap':
         maxwrap = [getarg(ai+1),getarg(ai+2)]
         ai += 2
@@ -340,11 +371,17 @@ while ai < len(sys.argv):
     elif a=='--numignore':
         numignore.append(getarg(ai+1))
         ai += 1
+    elif a=='--nomaxif':
+        nomaxif.append(getarg(ai+1))
+        ai += 1
+    elif a=='--commentsign':
+        commentsign.append(getarg(ai+1))
+        ai += 1
     else: 
         print 'unrecognized argument!'
         helpandexit()
     ai += 1
 
-process(separator,sepwrap,maxwrap,minwrap,groupbyncol,atleastfirst,strrep,numignore)
+process(separator,sepwrap,maxwrap,minwrap,groupbyncol,atleastfirst,strrep,numignore,commentsign,nomaxif)
 
 
