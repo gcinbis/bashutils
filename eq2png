@@ -19,11 +19,11 @@ then
 fi
 
 # temporary file
-xfile=`tempfile`
+xfile=`mktemp -u`
 xdir=`dirname "$xfile"`
 if [ -z "$xfile" ]; # unset or empty
 then
-    echo "ERROR tempfile failed"
+    echo "ERROR mktemp -u failed"
     exit 1 
 fi
 
