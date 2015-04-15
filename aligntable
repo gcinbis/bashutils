@@ -352,8 +352,10 @@ while ai < len(sys.argv):
         separator = "&"
         groupbyncol = True
         sepwrap = [r" ",r" "] # to replicate console argument, I use raw-strng literals here in every possible place. 
-        maxwrap = [r"\bf ",r""]
+        #maxwrap = [r"\bf ",r""]
+        maxwrap = [r"\textbf{",r"}"] # TODO: Add {}
         strrep.append((r"\\bf",r""))
+        strrep.append((r"\\textbf",r""))
         numignore.append(r"\\\\")
         numignore.append(r"\\[A-Za-z]+")
         numignore.append(r"[{}]")
