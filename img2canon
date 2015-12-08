@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]
+then
+    echo "Usage:  <filename>"
+    echo "The suffix of the <filename> will be replaced with '_canon.jpg'." 
+    exit 1 
+fi
+
+out="${1%.*}_canon.jpg"
+temp="${1%.*}___thumb___.jpg"
+
+convert -interlace none "$1" "$out"
+
+convert $out -thumbnail '196x196>' "$temp"
+
+exiftool -all= "$out"
+
+exiftool "-ThumbnailImage<=$temp" "$out"
+
+rm -f "$temp"
+rm -f "$out"_original
+

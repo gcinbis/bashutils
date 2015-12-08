@@ -2,7 +2,7 @@
 
 if [ $# -ne 3 ]
 then
-    echo "Usage: mycomparepdf <pdf1> <pdf2> <numberOfPages>"
+    echo "Usage: mypdfdiff <pdf1> <pdf2> <numberOfPages>"
     echo "Output files are named __delta__<page>.pdf"
     echo "Requires ImageMagick's compare tool"
     exit 1 
@@ -11,7 +11,7 @@ fi
 end=$(expr $3 - 1)
 for i in `seq 0 $end`;
 do
-    echo compare  "$1"[$i] "$2"[$i] -compose src __delta__$i.pdf
+    echo __delta__$i.pdf: "$1"[$i] vs "$2"[$i] 
     compare  "$1"[$i] "$2"[$i] -compose src __delta__$i.pdf
 done
 
