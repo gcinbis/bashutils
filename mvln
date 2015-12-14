@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Based on a stack-overflow question:
+# http://stackoverflow.com/questions/9251818/bash-move-file-directory-and-create-a-link-of-it
+
+# Show usage and exit with status
+show_usage_and_exit () {
+    echo "usage: mvln <src> <destination_dir_path>"
+    exit 1
+}
+
+# Check syntax
+if [ $# -ne 2 ]; then
+    show_usage_and_exit
+fi
+
+# Get paths
+src=$1
+dst=$2
+
+# Check that destination ends with a slash
+[[ $dst != */ ]] && dst="$dst"/
+
+# Append name
+dst=$dst$(basename $src)
+
+# Check file existence
+if [ ! -e "$src" ]; then
+    echo "mvln: $src: No such file or directory"
+    exit 2
+fi
+
+# Check file existence
+if [ -e "$dst" ]; then
+    echo "mvln: $dst: Already exists"
+    exit 3
+fi
+
+# Move source
+mv "$src" "$dst"
+rv_mv=$?
+if [ $rv_mv -ne 0 ]; then
+    echo Failed: mv "$src" "$dst"
+    exit 4
+fi
+
+# Create symlink 
+# passing src as the target may fail if src ends with a "/": ln -s "$dst" "$src"
+srcroot=`dirname "$src"`
+ln -s "$dst" "$srcroot"
+rv_ln=$?
+if [ $rv_ln -ne 0 ]; then
+    echo Failed: ln -s "$dst" "$src"
+    exit 5
+fi
+

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]
+then
+    echo "Usage: getpdfXplore <arnumber>"
+    echo "Download pdf from IEEE Xplore URL. Useful for downloading papers at home via ssh."
+    echo "<arnumber> can be found within the IEEE Xplore URL."
+    exit 1 
+fi
+
+wget -O - "http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=$1" | grep -o "http:.*pdf.[^\"]\+" | xargs wget -O $1.pdf
+
