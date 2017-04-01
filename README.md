@@ -3,17 +3,21 @@ utils
 
 Standalone utilities.
 
-## Text and LaTeX utilities
+## Text and TeX utilities
 
 * aligntable:    Align table columns. Particularly useful for latex tables via vim & emacs.
 * alignassign:   Align assignment statements in source codes.
 * eq2eps,eq2png: Generate eps, png files for LaTeX equations.
 * strrep:        Find and replace patterns in stdin or files.
-* mypdfdiff
+* mypdfdiff      Diff two pdfs.
+
+## Web utilities
+
+* getpdfXplore  Download papers by ID from IEEE Xplore.
+* minify_css    Script for minifying CSS files.
 
 ## Misc utilities
 
-* getpdfXplore
 * git_find_deleted_file
 * mvln
 
