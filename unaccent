@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#sed -e 's/[èéêëè]/e/g' -e 's/\d101/e/g' -e 's/[àáâãäåà]/a/g' -e 's/óöò/o/g' -e 's/ÁÀÄ/A/g' -e 's/ËÈÈ/E/g'
+#sed -e 'y/āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜĀÁǍÀĒÉĚÈĪÍǏÌŌÓǑÒŪÚǓÙǕǗǙǛé/aaaaeeeeiiiioooouuuuüüüüAAAAEEEEIIIIOOOOUUUUÜÜÜÜe/' -e 's/[èéêëè]/e/g' -e 's/\d101/e/g' -e 's/[àáâãäåà]/a/g' -e 's/óöò/o/g' -e 's/ÁÀÄ/A/g' -e 's/ËÈÈ/E/g'
+iconv -f utf8 -t ascii//TRANSLIT//IGNORE
+
+# -- iconv is 
+#| iconv -f utf8 -t ascii//TRANSLIT//IGNORE
+#| iconv -c -f UTF-8 -t ASCII
+
+
