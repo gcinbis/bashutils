@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+# https://cssminifier.com/wget
+
+if [ $# -ne 1 ]
+then
+    echo "Usage: minify_css <filename>"
+    echo "Extension of the <filename> will be replaced with '.min.css'. If there is no extension, .min.css will be added."
+    exit 1 
+fi
+
+out="${1%.*}.min.css"
+wget --post-data="input=`cat $1`" --output-document=$out https://cssminifier.com/raw
+
