@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+# to concatenate pdf files: catpdf input1 input2 .. inputN output
+# usage: catpdf *pdf output.pdf
+
+function catpdf() {
+    local args=($*) # todo: does this handle spaces correctly?
+    local narg=${#args[@]}
+    local out=${args[$narg-1]}
+    
+    # avoid overwriting by mistake
+    if [ -f $out ]
+    then
+        echo "Output: $out already exists. First delete existing output file."
+        return 1
+    fi
+
+    local cmd="gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$out" 
+    for (( i = 0 ; i < ($narg-1); i++ ))
+    do
+        cmd="$cmd ${args[$i]}" # todo: does this handle spaces correctly?
+    done    
+    echo $cmd
+    $cmd
+}
+
+
+catpdf "$@"
+
