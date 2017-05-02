@@ -1,0 +1,81 @@
+#!/bin/bash
+set -e
+
+if [ $# -ne 3 ]
+then
+   echo Add text to the first page of a pdf file
+   echo pdf_add_header_first_page file_in file_out text
+   echo
+   echo Useful for bulk processing and printing a set of pdffiles, example:
+   echo   'mkdir tmp'
+   echo   'for x in *.pdf; do pdf_add_header_first_page $x tmp/$x ${x%.*}; done'
+   echo   'catpdf tmp/*.pdf combined.pdf'
+   echo   'rm -rf tmp'
+   exit
+fi
+
+# Based on the following example in https://tex.stackexchange.com/questions/15314/how-can-i-superimpose-latex-tex-output-over-a-pdf-file 
+#
+# \documentclass[12pt]{article}
+# \usepackage{pdfpages}
+# \usepackage{tikz}
+# \begin{document}
+# \includepdf[pagecommand=
+# {\begin{tikzpicture}[remember picture,overlay]
+#  \node at (current page.center) {overlayed text};
+#   \end{tikzpicture}}
+#   ,pages=1]{filename.pdf}
+#   \includepdf[pages=2-]{filename.pdf}
+#   \end{document}
+
+# get args
+inorg="$1"
+out="$2"
+txt="$3"
+
+# avoid overwriting by mistake
+if [ -f $out ]
+then
+    echo "Output: $out already exists. First delete existing output file."
+    exit
+fi
+
+tmpDir=`mktemp -d -t tmp.pdf_add_header`
+if [ -f $tmpDir ]
+then
+    echo "ERROR, TEMP DIRETORY ALREADY EXISTS"
+    exit
+fi
+
+mkdir -p $tmpDir
+# dont do this: cp "$in" "$tmpDir/"
+orgDir="$PWD"
+cd $tmpDir
+echo "ENTERING THE WORK DIRECTORY: $tmpDir"
+
+# create a symlink to input file to avoid blues with underscores and spaces, instead of this: in="$orgDir/$inorg"
+in="input.pdf"
+ln -s "$orgDir/$inorg" "$in"
+
+# create a temp latex file
+echo "\\documentclass[12pt]{article}" >> tmp.tex
+echo "\\usepackage{pdfpages}" >> tmp.tex
+echo "\\usepackage{tikz}" >> tmp.tex
+echo "\usepackage{grffile}" >> tmp.tex
+echo "\\begin{document}" >> tmp.tex
+echo "\\includepdf[pagecommand=" >> tmp.tex
+echo "{\\begin{tikzpicture}[remember picture,overlay]" >> tmp.tex
+echo " \\node at ([yshift=-0.7cm] current page.north) {\detokenize{$txt}};" >> tmp.tex
+echo " \\end{tikzpicture}}" >> tmp.tex
+echo ",pages=1]{\\detokenize{$in}}" >> tmp.tex
+echo "\\includepdf[pages=2-]{\\detokenize{$in}}" >> tmp.tex
+echo "\\end{document}" >> tmp.tex
+
+pdflatex tmp.tex
+pdflatex tmp.tex # for some reason double-compilation is needed, why??
+cd "$orgDir"
+mv "$tmpDir/tmp.pdf" "$out"
+
+echo "RUN THIS FOR CLEANUP: rm -rf $tmpDir" # dont do this automatically, in case something goes wrong... this is not super-critical as the remaining files in the directory are pretty slim
+
+
