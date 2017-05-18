@@ -1,0 +1,168 @@
+######################################################################
+# Makefile for compiling tex files and setting up sharing permissions.
+# Customized by Gokberk Cinbis based on many existing Makefile examples available online.
+# Last update: May 2017
+# 
+# Requires a second, project-specific file named "Makefile.mk" that contains the following definitions:
+# TEXFILE=<tex filename>    --> Nmae of the main tex file
+# TITLE=<project title>     --> Name of the project
+# PDFDIR=<output directory> --> OPTIONAL. The pdf output directory. 
+#				(Use "." to compile in the source directory)
+# 
+# -- Example Makefile.mk --
+# TEXFILE=paper.tex	
+# TITLE=author17journal	
+#
+# Also supports the following environement variables:
+# PDFDIR: The default value for the PDFDIR
+# 
+# If PDFDIR is not defined in Makefile.mk OR as an environment variable, "." is used.
+# 
+
+######################################################################
+
+PDFDIRDEFAULT="$(PDFDIR)" # From the environement variable
+
+include Makefile.mk # may or maynot overwrite PDFDIR
+TITLEORG="$(TITLE)"
+
+# if PDFDIR is undefined OR '', then use the current directory.
+PDFDIR?=.
+ifeq "$(PDFDIR)" ""
+    PDFDIR=.
+endif
+ifneq "$(PDFDIR)" "."
+    PDFDIR:=$(PDFDIR)/$(TITLE)
+endif
+
+CMDPDFMAIN=pdflatex -output-directory $(PDFDIR) $(TEXFILE)
+CMDPDF=$(CMDPDFMAIN) -file-line-error -interaction=nonstopmode | grep -i -e warn -e error -e pages -B4 -A4 -e '^l.' -e '^?' # hangs in cygwin in interactive mode
+#CMDPDF=$(CMDPDFMAIN) -interaction=nonstopmode
+
+#all:	export pdf bib share echo 
+all:	pdfnonstop bib echo 
+	@( \
+	set -e; \
+	if grep -q Error $(PDFDIR)/$(TEXFILE:.tex=.log); \
+	then \
+	    echo "SKIPPED COPYING THE PDF FILE TO AVOID PDF-READER CRASH, AS LOG CONTAINS ERROR"; \
+	else \
+	    mv -f $(PDFDIR)/$(TEXFILE:.tex=.pdf) $(PDFDIR)/stable_$(TEXFILE:.tex=.pdf); \
+	fi \
+	)
+	@#cp -f $(PDFDIR)/$(TEXFILE:.tex=.pdf) .
+
+warn:	pdfnonstopwarnonly 
+
+error:	pdferror bib echo
+
+sup:	
+	pdflatex supmat.tex
+	bibtex supmat
+
+echo:
+	@echo "Tex file:$(TEXFILE)"
+	@echo "Output files are under:$(PDFDIR)"
+
+view:	all
+	$(PDFVIEW) $(PDFDIR)/stable_$(TEXFILE:.tex=.pdf) &
+
+showlog: 	
+	vi $(PDFDIR)/$(TEXFILE:.tex=.log)
+
+open:	
+	$(OPEN) $(PDFDIR) &
+
+ps:	$(TEXFILE:.tex=.ps)
+dvi:	$(TEXFILE:.tex=.dvi)
+bib:	pdfnonstop bibrule
+
+bibrule:	$(TEXFILE)
+	@( \
+	echo ================= bib ======================; \
+	export openout_any=a; \
+	bibtex "$(PDFDIR)/$(<:.tex=)"; \
+	)
+
+%.dvi: %.tex checkdep
+	@( \
+	echo ================= latex ======================; \
+	latex $<; \
+	while grep -q "Rerun to get cross-references right." $(<:.tex=.log); \
+	do \
+		echo ================= latex loop ======================; \
+		latex $<; \
+	done \
+	)
+
+%.ps: %.dvi
+	@dvips -q -t a4 $< -o $(<:.dvi=.ps)
+
+latex:	$(TEXFILE:.tex=.ps)
+	@ps2pdf -dPDFSETTINGS=/prepress $<
+
+# Note: $< is the first dependency.
+#
+# pdflatex -interaction=batchmode -halt-on-error -file-line-error $(TEXFILE); 
+# use "X" to quit.
+# 
+# output-directory should be before the filename.
+# pdflatex -file-line-error -output-directory $(PDFDIR) $(<); 
+#
+# Don't stop on errors
+pdfnonstop:$(TEXFILE) checkdep 
+	@( \
+	echo ================= pdflatex ======================; \
+	mkdir -p $(PDFDIR); \
+	$(CMDPDF); \
+	while grep -q "Rerun to get" $(PDFDIR)/$(<:.tex=.log); \
+	do \
+		echo ================= pdflatex loop ======================; \
+		$(CMDPDF); \
+	done \
+	)
+
+# Don't stop on errors, show warnings only
+pdfnonstopwarnonly:$(TEXFILE) checkdep 
+	@( \
+	echo ================= pdflatex ======================; \
+	mkdir -p $(PDFDIR); \
+	$(CMDPDF) | grep Warn; \
+	while grep -q "Rerun to get" $(PDFDIR)/$(<:.tex=.log); \
+	do \
+		echo ================= pdflatex loop ======================; \
+		$(CMDPDF) | grep Warn; \
+	done \
+	)
+
+
+# Stop on errors
+pdferror: 	$(TEXFILE) checkdep 
+	@( \
+	echo ================= pdflatex ======================; \
+	mkdir -p $(PDFDIR); \
+	$(CMDPDFMAIN); \
+	while grep -q "Rerun to get" $(PDFDIR)/$(<:.tex=.log); \
+	do \
+		echo ================= pdflatex loop ======================; \
+		$(CMDPDFMAIN); \
+	done \
+	)
+
+compress:
+	@(cd $(PDFDIR) && ls -alh $(TEXFILE:.tex=.pdf) && pdf2ps $(TEXFILE:.tex=.pdf) && ps2pdf $(TEXFILE:.tex=.ps) && ls -alh $(TEXFILE:.tex=.pdf) && rm -f ps2pdf $(TEXFILE:.tex=.ps))
+
+share:	
+	@find . -user ${USER} -type d -execdir chmod 770 "{}" \;
+	@find . -user ${USER} -type f -execdir chmod 660 "{}" \;
+
+# check whether bibtex changed the bibliography file
+checkdep: $(TEXFILE:.tex:.aux) 
+
+export:	
+	@bash export.sh
+
+clean:
+	@rm -f {./,$(PDFDIR)/}$(TEXFILE:.tex=.){aux,log,out,dvi,pdf,bbl,blg,ps,brf,lof,lot,nlo,maf,toc} 
+	@rm -f {./,$(PDFDIR)/}$(TEXFILE:.tex=.){mlc,mlt,mtc,mlf}*
+
