@@ -33,6 +33,7 @@ endif
 ifneq "$(PDFDIR)" "."
     PDFDIR:=$(PDFDIR)/$(TITLE)
 endif
+FINALPDFFILE="$(PDFDIR)/stable_$(TEXFILE:.tex=.pdf)"
 
 CMDPDFMAIN=pdflatex -output-directory $(PDFDIR) $(TEXFILE)
 CMDPDF=$(CMDPDFMAIN) -file-line-error -interaction=nonstopmode | grep -i -e warn -e error -e pages -B4 -A4 -e '^l.' -e '^?' # hangs in cygwin in interactive mode
@@ -46,7 +47,7 @@ all:	pdfnonstop bib echo
 	then \
 	    echo "SKIPPED COPYING THE PDF FILE TO AVOID PDF-READER CRASH, AS LOG CONTAINS ERROR"; \
 	else \
-	    mv -f $(PDFDIR)/$(TEXFILE:.tex=.pdf) $(PDFDIR)/stable_$(TEXFILE:.tex=.pdf); \
+	    mv -f $(PDFDIR)/$(TEXFILE:.tex=.pdf) $(FINALPDFFILE); \
 	fi \
 	)
 	@#cp -f $(PDFDIR)/$(TEXFILE:.tex=.pdf) .
@@ -62,9 +63,10 @@ sup:
 echo:
 	@echo "Tex file:$(TEXFILE)"
 	@echo "Output files are under:$(PDFDIR)"
+	@echo "Final pdf file:$(FINALPDFFILE)"
 
 view:	all
-	$(PDFVIEW) $(PDFDIR)/stable_$(TEXFILE:.tex=.pdf) &
+	$(PDFVIEW) $(FINALPDFFILE) &
 
 showlog: 	
 	vi $(PDFDIR)/$(TEXFILE:.tex=.log)
