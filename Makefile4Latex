@@ -24,7 +24,6 @@
 PDFDIRDEFAULT="$(PDFDIR)" # From the environement variable
 
 include Makefile.mk # may or maynot overwrite PDFDIR
-TITLEORG="$(TITLE)"
 
 # if PDFDIR is undefined OR '', then use the current directory.
 PDFDIR?=.
