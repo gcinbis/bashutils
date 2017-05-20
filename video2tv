@@ -2,7 +2,7 @@
 
 if [ $# -ne 1 ]
 then
-    echo "Usage: video2mp4 <filename.ext>"
+    echo "Usage: video2tv <filename.ext>"
     echo "Produces <filename.tv.mp4>"
     exit 1 
 fi
