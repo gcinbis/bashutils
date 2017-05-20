@@ -19,7 +19,7 @@ Standalone utilities.
 
 ## Web utilities
 
-* getpdfXplore:                 Download papers by ID from IEEE Xplore.
+* getpdfXplore:                 Download papers by ID from IEEE Xplore (requires institutional/login-free subscription).
 * minify_css:                   Script for minifying CSS files.
 
 ## Misc utilities
