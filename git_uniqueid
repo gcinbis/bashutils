@@ -1,0 +1,49 @@
+#!/bin/bash
+set -e
+
+if [ "$#" -ne 0 ]; then
+    echo  'generate a unique id of form "date_index_hash" (only first few characters of the hash is show)'
+    echo  'or "index_date_hash_modified" (if there are uncommited changes) or "date_notgit"'
+    echo 
+    echo  'the intended use is to give a name of the experiment'
+    echo 
+    echo  'assumes that the current directory is a git repository.'
+    echo 
+    echo  'exit code:'
+    echo  '  0 if the git directory is "clean"'
+    echo  '  1 if the git directory has uncommited changes'
+    echo  '  2 if not a git repository'
+    echo
+    echo  ' suggested use:'
+    echo  '  if id=$(git_uniqueid); then'
+    echo  '      echo run experiment with log directory $id'
+    echo  '  else'
+    echo  '      echo "there are uncommitted changes or not a git directory"'
+    echo  '  fi'
+    exit 3
+fi
+
+d=`date +%Y%m%d`
+
+# https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
+if git rev-parse --git-dir > /dev/null 2>&1; then
+    : # This is a valid git repository (but the current working
+    # directory may not be the top level.
+    # Check the output of the git rev-parse command if you care)
+
+    # https://stackoverflow.com/questions/4120001/what-is-the-git-equivalent-for-revision-number
+    c=`git rev-list --full-history --all --abbrev-commit | wc -l | sed -e 's/^ *//'`
+    h=`git rev-list --full-history --all --abbrev-commit | head -1`
+    if [[ -z $(git status -s) ]]; then # see https://stackoverflow.com/questions/3878624/how-do-i-programmatically-determine-if-there-are-uncommited-changes
+        echo ${d}_${c}_${h}
+        exit 0
+    else
+        echo ${d}_${c}_${h}_modified
+        exit 1 
+    fi
+
+else
+    echo ${d}_notgit
+    exit 2 
+fi
+
