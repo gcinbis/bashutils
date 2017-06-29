@@ -22,9 +22,13 @@ Standalone utilities.
 * getpdfXplore:                 Download papers by ID from IEEE Xplore (requires institutional/login-free subscription).
 * minify_css:                   Script for minifying CSS files.
 
+## Git utilities
+
+* git_uniqueid                  Generate a unique id for the current source code.
+* git_find_deleted_file:        A git shortcut.
+
 ## Misc utilities
 
-* git_find_deleted_file:        Git shortcut.
 * mvln:                         Move and link shortcut.
 * strrep:                       String find-and-replace.
 

@@ -2,19 +2,17 @@
 set -e
 
 if [ "$#" -ne 0 ]; then
-    echo  'generate a unique id of form "date_index_hash" (only first few characters of the hash is show)'
-    echo  'or "index_date_hash_modified" (if there are uncommited changes) or "date_notgit"'
+    echo  'Generate a unique id of form "date_index_hash" (only first few characters of the hash is show)'
+    echo  'or "index_date_hash_modified" (if there are uncommited changes) or "date_notgit" (not a git directory).'
+    echo  'The intended use is to tag the experimental outputs of the current source code.'
     echo 
-    echo  'the intended use is to give a name of the experiment'
-    echo 
-    echo  'assumes that the current directory is a git repository.'
-    echo 
-    echo  'exit code:'
+    echo  'Exit codes:'
     echo  '  0 if the git directory is "clean"'
     echo  '  1 if the git directory has uncommited changes'
     echo  '  2 if not a git repository'
+    echo  '  3 if number of input arguments is not zero'
     echo
-    echo  ' suggested use:'
+    echo  'Suggested use of the exit code:'
     echo  '  if id=$(git_uniqueid); then'
     echo  '      echo run experiment with log directory $id'
     echo  '  else'
