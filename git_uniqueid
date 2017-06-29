@@ -2,7 +2,7 @@
 set -e
 
 if [ "$#" -ne 0 ]; then
-    echo  'Generate a unique id of form "date_index_hash" (only first few characters of the hash is show)'
+    echo  'Generate a unique id of form "date_index_hash" (only first few characters of the hash is shown)'
     echo  'or "index_date_hash_modified" (if there are uncommited changes) or "date_notgit" (not a git directory).'
     echo  'The intended use is to tag the experimental outputs of the current source code.'
     echo 
