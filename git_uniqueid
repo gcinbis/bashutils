@@ -1,16 +1,29 @@
 #!/bin/bash
 set -e
 
-if [ "$#" -ne 0 ]; then
-    echo  'Generate a unique id of form "date_index_hash" (only first few characters of the hash is shown)'
-    echo  'or "index_date_hash_modified" (if there are uncommited changes) or "date_notgit" (not a git directory).'
+d=`date +%Y%m%d`
+t_time=`date +%H.%M.%S` # hour.minute.seconds
+t_host=`hostname`
+t="_${t_time}.${t_host}.$$"
+
+if [ "$#" -eq 0 ]; then
+    :
+elif [ $1 == "--nodetail"  ] && [ "$#" -eq 1 ]; then
+    t=""
+else
+    echo  'git_uniqueid [--nodetail]'
+    echo    
+    echo  'Generate a unique expeirment id of form "date_index_hash_detail" (only first few characters of the hash is shown)'
+    echo  'or "date_index_hash_modified_detail" (if there are uncommited changes) or "date_notgit_detail" (not a git directory).'
     echo  'The intended use is to tag the experimental outputs of the current source code.'
+    echo
+    echo  'detail = hour.minute.seconds.host.pid (pid belongs to current script, provided just to reduce the chance of a name conflict'
     echo 
     echo  'Exit codes:'
     echo  '  0 if the git directory is "clean"'
     echo  '  1 if the git directory has uncommited changes'
     echo  '  2 if not a git repository'
-    echo  '  3 if number of input arguments is not zero'
+    echo  '  3 if arguments are not understood'
     echo
     echo  'Suggested use of the exit code:'
     echo  '  if id=$(git_uniqueid); then'
@@ -20,8 +33,6 @@ if [ "$#" -ne 0 ]; then
     echo  '  fi'
     exit 3
 fi
-
-d=`date +%Y%m%d`
 
 # https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
 if git rev-parse --git-dir > /dev/null 2>&1; then
@@ -33,15 +44,15 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     c=`git rev-list --full-history --all --abbrev-commit | wc -l | sed -e 's/^ *//'`
     h=`git rev-list --full-history --all --abbrev-commit | head -1`
     if [[ -z $(git status -s) ]]; then # see https://stackoverflow.com/questions/3878624/how-do-i-programmatically-determine-if-there-are-uncommited-changes
-        echo ${d}_${c}_${h}
+        echo ${d}_${c}_${h}${t}
         exit 0
     else
-        echo ${d}_${c}_${h}_modified
+        echo ${d}_${c}_${h}_modified${t}
         exit 1 
     fi
 
 else
-    echo ${d}_notgit
+    echo ${d}_notgit${t}
     exit 2 
 fi
 
