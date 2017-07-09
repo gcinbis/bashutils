@@ -1,29 +1,31 @@
 #!/bin/bash
 set -e
 
-d=`date +%Y%m%d`
-t_time=`date +%H.%M.%S` # hour.minute.seconds
-t_host=`hostname`
-t="_${t_time}.${t_host}.$$"
-
-if [ "$#" -eq 0 ]; then
-    :
-elif [ $1 == "--nodetail"  ] && [ "$#" -eq 1 ]; then
-    t=""
-else
-    echo  'git_uniqueid [--nodetail]'
+function helpandpanic()
+{
+    echo  'git_uniqueid <format>'
     echo    
-    echo  'Generate a unique expeirment id of form "date_index_hash_detail" (only first few characters of the hash is shown)'
-    echo  'or "date_index_hash_modified_detail" (if there are uncommited changes) or "date_notgit_detail" (not a git directory).'
+    echo  'Generate a unique experiment id based on date and git hash.'
     echo  'The intended use is to tag the experimental outputs of the current source code.'
     echo
-    echo  'detail = hour.minute.seconds.host.pid (pid belongs to current script, provided just to reduce the chance of a name conflict'
+    echo  FORMAT OPTIONS
+    echo  'date_time_hash_proc (default)'
+    echo  'date_index_hash_time_proc' 
+    echo
+    echo  'GIT HASH STRING'
+    echo  'Git directory, no modification: only first few characters of the hash is shown'
+    echo  'Git directory, with modified files: <githash>_modified'
+    echo  'Not a git directory: "nogit"'
+    echo
+    echo  'OTHER VARIABLES'
+    echo  'index: commit index relative to the first one, a hacky commit index'
+    echo  'process: hostname.pid, where pid belongs to current script, provided just to reduce the chance of a name conflict'
     echo 
-    echo  'Exit codes:'
+    echo  'EXIT CODES'
     echo  '  0 if the git directory is "clean"'
     echo  '  1 if the git directory has uncommited changes'
     echo  '  2 if not a git repository'
-    echo  '  3 if arguments are not understood'
+    echo  '  3 if arguments are not recognized'
     echo
     echo  'Suggested use of the exit code:'
     echo  '  if id=$(git_uniqueid); then'
@@ -32,27 +34,51 @@ else
     echo  '      echo "there are uncommitted changes or not a git directory"'
     echo  '  fi'
     exit 3
+}
+
+if [ "$#" -eq 0 ]; then
+    format="date_time_hash_proc"
+elif [ "$#" -eq 1 ]; then
+    format="$1"
+else
+    helpandpanic
 fi
 
+# date, time, process info
+d=`date +%Y%m%d`
+t=`date +%H.%M.%S` # hour.minute.seconds (dots are useful for time, otherwise very unreadible)
+host=`hostname`
+pid="$$"
+proc="${host}.${pid}"
+
+# git information
 # https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
 if git rev-parse --git-dir > /dev/null 2>&1; then
-    : # This is a valid git repository (but the current working
-    # directory may not be the top level.
-    # Check the output of the git rev-parse command if you care)
-
     # https://stackoverflow.com/questions/4120001/what-is-the-git-equivalent-for-revision-number
-    c=`git rev-list --full-history --all --abbrev-commit | wc -l | sed -e 's/^ *//'`
-    h=`git rev-list --full-history --all --abbrev-commit | head -1`
+    commitindex=`git rev-list --full-history --all --abbrev-commit | wc -l | sed -e 's/^ *//'` # commit index
+    h=`git rev-list --full-history --all --abbrev-commit | head -1` # hash
     if [[ -z $(git status -s) ]]; then # see https://stackoverflow.com/questions/3878624/how-do-i-programmatically-determine-if-there-are-uncommited-changes
-        echo ${d}_${c}_${h}${t}
-        exit 0
+        rc=0 # return code
     else
-        echo ${d}_${c}_${h}_modified${t}
-        exit 1 
+        h=${h}_modified
+        rc=1 # return code
     fi
-
+    ih="${commitindex}_${h}"
 else
-    echo ${d}_notgit${t}
-    exit 2 
+    h='notgit' # hash
+    ih='notgit' # index_hash
+    rc=2 # return code
 fi
+
+if [ "$format" == "date_time_hash_proc" ]; then
+    echo ${d}_${t}_${h}_${proc}
+elif [ "$format" == "date_index_hash_time_proc" ]; then
+    echo ${d}_${ih}_${t}.${proc}
+else
+    echo "UNRECOGNIZED FORMAT"
+    helpandpanic
+fi
+
+exit $rc
+
 
