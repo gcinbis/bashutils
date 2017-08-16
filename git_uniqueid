@@ -1,4 +1,5 @@
 #!/bin/bash
+# Author: Gokberk Cinbis, 2017
 set -e
 
 function helpandpanic()
@@ -9,7 +10,8 @@ function helpandpanic()
     echo  'The intended use is to tag the experimental outputs of the current source code.'
     echo
     echo  FORMAT OPTIONS
-    echo  'date_time_hash_proc (default)'
+    echo  'date_time_branch_hash_proc (default)'
+    echo  'date_time_hash_proc'
     echo  'date_index_hash_time_proc' 
     echo
     echo  'GIT HASH STRING'
@@ -37,7 +39,7 @@ function helpandpanic()
 }
 
 if [ "$#" -eq 0 ]; then
-    format="date_time_hash_proc"
+    format="date_time_branch_hash_proc"
 elif [ "$#" -eq 1 ]; then
     format="$1"
 else
@@ -57,6 +59,7 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     # https://stackoverflow.com/questions/4120001/what-is-the-git-equivalent-for-revision-number
     commitindex=`git rev-list --full-history --all --abbrev-commit | wc -l | sed -e 's/^ *//'` # commit index
     h=`git rev-list --full-history --all --abbrev-commit | head -1` # hash
+    branch=`git rev-parse --abbrev-ref HEAD`
     if [[ -z $(git status -s) ]]; then # see https://stackoverflow.com/questions/3878624/how-do-i-programmatically-determine-if-there-are-uncommited-changes
         rc=0 # return code
     else
@@ -66,11 +69,15 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     ih="${commitindex}_${h}"
 else
     h='notgit' # hash
+    branch=''
     ih='notgit' # index_hash
     rc=2 # return code
 fi
 
-if [ "$format" == "date_time_hash_proc" ]; then
+if [ "$format" == "date_time_branch_hash_proc" ]; then
+    branch="${branch}_"
+    echo ${d}_${t}_${branch}${h}_${proc}
+elif [ "$format" == "date_time_hash_proc" ]; then
     echo ${d}_${t}_${h}_${proc}
 elif [ "$format" == "date_index_hash_time_proc" ]; then
     echo ${d}_${ih}_${t}.${proc}
