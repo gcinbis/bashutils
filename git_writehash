@@ -23,7 +23,7 @@ fi
 
 if [ -f $file ]
 then
-    echo "Output: $file already exists. First delete existing output file."
+    echo "git_writehash: $file already exists. First delete existing output file."
     exit 1
 fi
 

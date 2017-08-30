@@ -30,7 +30,7 @@ fi
 
 if [ ! -f $file ]
 then
-    echo "Output: $file does not exit."
+    echo "git_checkhash: $file does not exit."
     exit 2
 fi
 
@@ -45,8 +45,8 @@ if [ "${idf}" == "${idg}" ]
 then
     exit 0
 else
-    echo "git_checkhash: hash differs. Run the following command to check-out target version:"
-    echo "git checkout ${idf}"
+    echo "git_checkhash: hash differs. Checkout version ${idf} to use the right version."
+    # RUN: "git checkout ${idf}"
     exit 1
 fi
 
