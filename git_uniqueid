@@ -19,8 +19,8 @@ function helpandpanic()
     echo 'Not a git directory: "nogit"'
     echo
     echo 'OTHER VARIABLES'
-    echo 'index: commit index relative to the first one, a hacky commit index'
-    echo 'process: hostname.pid, where pid belongs to current script, provided just to reduce the chance of a name conflict'
+    echo 'branch: The current branch. When in detached-HEAD mode, this is just "HEAD".'
+    echo 'proc: hostname.pid, where pid belongs to current script, provided just to reduce the chance of a name conflict'
     echo 
     echo 'EXIT CODES'
     echo '  0 if the git directory is "clean"'
@@ -63,6 +63,7 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     # https://stackoverflow.com/questions/4120001/what-is-the-git-equivalent-for-revision-number
 
     # No, this is not reliable and wrong if we're in detached-HEAD state.
+    # 'index: commit index relative to the first one, a hacky commit index'
     # commitindex=`git rev-list --full-history --all --abbrev-commit | wc -l | sed -e 's/^ *//'` # commit index
 
     h=`git_writehash` # hash
