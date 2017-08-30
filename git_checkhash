@@ -1,0 +1,53 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, 2017
+set -e
+
+if [ "$#" -eq 1 ]; then
+    file="$1"
+else
+    echo 'git_checkhash <file>'
+    echo ''   
+    echo 'Check whether the current git hash to make sure the right code-base is being used for evaluating a pre-trained model'
+    echo ''
+    echo 'EXIT CODES'
+    echo '  0 if check passes'
+    echo '  non-zero otherwise'
+    echo
+    echo 'Suggested use of the exit code:'
+    echo '  if git_checkhash <file>; then echo "git_checkhash passed"; else exit 1; fi'
+    echo ''   
+    echo 'SUGGESTED USE'   
+    echo 'Call git_uniqueid to generate a log directory in the beginning of an experiment script'   
+    echo 'Call git_writehash to write the current hash into a file into the log directory'
+    echo 'Call git_checkhash at test time to make sure that the right revision is being used at evaluation time (if necessary)'
+    echo ''   
+    echo 'PACKAGE'
+    echo 'git_uniqueid    Generate a unique log file/directory name for running an experiment'
+    echo 'git_writehash   Write git hash into a file'
+    echo 'git_checkhash   Check whether the current git hash to make sure the right code-base is being used for evaluating a pre-trained model'
+    exit 3
+fi
+
+if [ ! -f $file ]
+then
+    echo "Output: $file does not exit."
+    exit 2
+fi
+
+idf=$(command cat $file)
+idg=$(command git rev-list --full-history --all | head -1)
+
+# trim
+idf=$(echo -e "${idf}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+idg=$(echo -e "${idg}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+if [ "${idf}" == "${idg}" ]
+then
+    exit 0
+else
+    echo "git_checkhash: hash differs. Run the following command to check-out target version:"
+    echo "git checkout ${idf}"
+    exit 1
+fi
+
+

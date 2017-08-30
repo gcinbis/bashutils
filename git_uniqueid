@@ -4,37 +4,42 @@ set -e
 
 function helpandpanic()
 {
-    echo  'git_uniqueid <format>'
-    echo    
-    echo  'Generate a unique experiment id based on date and git hash.'
-    echo  'The intended use is to tag the experimental outputs of the current source code.'
+    echo 'git_uniqueid <format>'
+    echo   
+    echo 'Generate a unique experiment id based on date and git hash.'
+    echo 'The intended use is to tag the experimental outputs of the current source code.'
     echo
-    echo  FORMAT OPTIONS
-    echo  'date_time_branch_hash_proc (default)'
-    echo  'date_time_hash_proc'
-    echo  'date_index_hash_time_proc' 
+    echo FORMAT OPTIONS
+    echo 'date_time_branch_hash_proc (default)'
+    echo 'date_time_hash_proc'
+    echo 'date_index_hash_time_proc' 
     echo
-    echo  'GIT HASH STRING'
-    echo  'Git directory, no modification: only first few characters of the hash is shown'
-    echo  'Git directory, with modified files: <githash>_modified'
-    echo  'Not a git directory: "nogit"'
+    echo 'GIT HASH STRING'
+    echo 'Git directory, no modification: only first few characters of the hash is shown'
+    echo 'Git directory, with modified files: <githash>_modified'
+    echo 'Not a git directory: "nogit"'
     echo
-    echo  'OTHER VARIABLES'
-    echo  'index: commit index relative to the first one, a hacky commit index'
-    echo  'process: hostname.pid, where pid belongs to current script, provided just to reduce the chance of a name conflict'
+    echo 'OTHER VARIABLES'
+    echo 'index: commit index relative to the first one, a hacky commit index'
+    echo 'process: hostname.pid, where pid belongs to current script, provided just to reduce the chance of a name conflict'
     echo 
-    echo  'EXIT CODES'
-    echo  '  0 if the git directory is "clean"'
-    echo  '  1 if the git directory has uncommited changes'
-    echo  '  2 if not a git repository'
-    echo  '  3 if arguments are not recognized'
+    echo 'EXIT CODES'
+    echo '  0 if the git directory is "clean"'
+    echo '  1 if the git directory has uncommited changes'
+    echo '  2 if not a git repository'
+    echo '  3 if arguments are not recognized'
     echo
-    echo  'Suggested use of the exit code:'
-    echo  '  if id=$(git_uniqueid); then'
-    echo  '      echo run experiment with log directory $id'
-    echo  '  else'
-    echo  '      echo "there are uncommitted changes or not a git directory"'
-    echo  '  fi'
+    echo 'Suggested use of the exit code:'
+    echo '  if id=$(git_uniqueid); then'
+    echo '      echo run experiment with log directory $id'
+    echo '  else'
+    echo '      echo "there are uncommitted changes or not a git directory"'
+    echo '  fi'
+    echo
+    echo 'PACKAGE'
+    echo 'git_uniqueid    Generate a unique log file/directory name for running an experiment'
+    echo 'git_writehash   Write git hash into a file'
+    echo 'git_checkhash   Check whether the current git hash to make sure the right code-base is being used for evaluating a pre-trained model'
     exit 3
 }
 
