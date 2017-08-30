@@ -62,7 +62,7 @@ proc="${host}.${pid}"
 if git rev-parse --git-dir > /dev/null 2>&1; then
     # https://stackoverflow.com/questions/4120001/what-is-the-git-equivalent-for-revision-number
 
-    # No, this is not reliable and wrong if we're in headless state.
+    # No, this is not reliable and wrong if we're in detached-HEAD state.
     # commitindex=`git rev-list --full-history --all --abbrev-commit | wc -l | sed -e 's/^ *//'` # commit index
 
     h=`git_writehash` # hash

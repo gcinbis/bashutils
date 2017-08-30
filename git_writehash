@@ -3,7 +3,7 @@
 set -e
 
 # NO! cmd='command git rev-list --full-history --all | head -1' 
-# If we've checkout an old revision (ie. in headless state), this returns an incorrect result.
+# If we've checkout an old revision (ie. in detached-HEAD state), this returns an incorrect result.
 cmd='git rev-parse --verify HEAD'
 
 if [ "$#" -eq 0 ]; then
