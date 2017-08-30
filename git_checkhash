@@ -35,7 +35,7 @@ then
 fi
 
 idf=$(command cat $file)
-idg=$(command git rev-list --full-history --all | head -1)
+idg=$(command git_writehash | head -1)
 
 # trim
 idf=$(echo -e "${idf}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')

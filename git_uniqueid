@@ -12,7 +12,6 @@ function helpandpanic()
     echo FORMAT OPTIONS
     echo 'date_time_branch_hash_proc (default)'
     echo 'date_time_hash_proc'
-    echo 'date_index_hash_time_proc' 
     echo
     echo 'GIT HASH STRING'
     echo 'Git directory, no modification: only first few characters of the hash is shown'
@@ -62,8 +61,11 @@ proc="${host}.${pid}"
 # https://stackoverflow.com/questions/2180270/check-if-current-directory-is-a-git-repository
 if git rev-parse --git-dir > /dev/null 2>&1; then
     # https://stackoverflow.com/questions/4120001/what-is-the-git-equivalent-for-revision-number
-    commitindex=`git rev-list --full-history --all --abbrev-commit | wc -l | sed -e 's/^ *//'` # commit index
-    h=`git rev-list --full-history --all --abbrev-commit | head -1` # hash
+
+    # No, this is not reliable and wrong if we're in headless state.
+    # commitindex=`git rev-list --full-history --all --abbrev-commit | wc -l | sed -e 's/^ *//'` # commit index
+
+    h=`git_writehash` # hash
     branch=`git rev-parse --abbrev-ref HEAD`
     if [[ -z $(git status -s) ]]; then # see https://stackoverflow.com/questions/3878624/how-do-i-programmatically-determine-if-there-are-uncommited-changes
         rc=0 # return code
@@ -71,7 +73,7 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
         h=${h}_modified
         rc=1 # return code
     fi
-    ih="${commitindex}_${h}"
+    # ih="${commitindex}_${h}"
 else
     h='notgit' # hash
     branch=''
@@ -84,8 +86,8 @@ if [ "$format" == "date_time_branch_hash_proc" ]; then
     echo ${d}_${t}_${branch}${h}_${proc}
 elif [ "$format" == "date_time_hash_proc" ]; then
     echo ${d}_${t}_${h}_${proc}
-elif [ "$format" == "date_index_hash_time_proc" ]; then
-    echo ${d}_${ih}_${t}.${proc}
+#elif [ "$format" == "date_index_hash_time_proc" ]; then
+#    echo ${d}_${ih}_${t}.${proc}
 else
     echo "UNRECOGNIZED FORMAT"
     helpandpanic

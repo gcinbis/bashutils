@@ -2,11 +2,26 @@
 # Author: Gokberk Cinbis, 2017
 set -e
 
-if [ "$#" -eq 1 ]; then
+# NO! cmd='command git rev-list --full-history --all | head -1' 
+# If we've checkout an old revision (ie. in headless state), this returns an incorrect result.
+cmd='git rev-parse --verify HEAD'
+
+if [ "$#" -eq 0 ]; then
     file="$1"
+    ${cmd}
+elif [ "$#" -eq 1 ]; then
+    file="$1"
+    if [ -f "$file" ]
+    then
+        echo "git_writehash: "$file" already exists. First delete existing output file."
+        exit 1
+    fi
+    ${cmd} > "$file"
 else
     echo 'git_writehash <file>'
+    echo 'Echo git hash'
     echo ''   
+    echo 'git_writehash <file>'
     echo 'Write git hash into a file. Exists if file already exists.'
     echo ''   
     echo 'SUGGESTED USE'   
@@ -21,11 +36,6 @@ else
     exit 3
 fi
 
-if [ -f $file ]
-then
-    echo "git_writehash: $file already exists. First delete existing output file."
-    exit 1
-fi
 
-command git rev-list --full-history --all | head -1 > $file
+
 
