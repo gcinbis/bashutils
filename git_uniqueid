@@ -1,6 +1,7 @@
 #!/bin/bash
 # Author: Gokberk Cinbis, 2017
 set -e
+#set -o pipefail -e # maybe this instead?
 
 function helpandpanic()
 {
@@ -30,7 +31,7 @@ function helpandpanic()
     echo
     echo 'Suggested use of the exit code:'
     echo '  if id=$(git_uniqueid); then'
-    echo '      echo run experiment with log directory $id'
+    echo '      echo run experiment with log id $id'
     echo '  else'
     echo '      echo "there are uncommitted changes or not a git directory"'
     echo '  fi'
@@ -66,12 +67,16 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     # 'index: commit index relative to the first one, a hacky commit index'
     # commitindex=`git rev-list --full-history --all --abbrev-commit | wc -l | sed -e 's/^ *//'` # commit index
 
+    set +e # forgive errors below
     h=`git_writehash` # hash
+    writehash_exit=$?
+    set -e # exit on error
+
     branch=`git rev-parse --abbrev-ref HEAD`
     if [[ -z $(git status -s) ]]; then # see https://stackoverflow.com/questions/3878624/how-do-i-programmatically-determine-if-there-are-uncommited-changes
-        rc=0 # return code
+        rc=$writehash_exit # return code is zero unless git_writehash has reported an error
     else
-        h=${h}_modified
+        # git_writehash does this: h=${h}_modified
         rc=1 # return code
     fi
     # ih="${commitindex}_${h}"

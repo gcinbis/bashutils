@@ -2,27 +2,20 @@
 # Author: Gokberk Cinbis, 2017
 set -e
 
-# NO! cmd='command git rev-list --full-history --all | head -1' 
-# If we've checkout an old revision (ie. in detached-HEAD state), this returns an incorrect result.
-cmd='git rev-parse --verify HEAD'
-
-if [ "$#" -eq 0 ]; then
-    file="$1"
-    ${cmd}
-elif [ "$#" -eq 1 ]; then
-    file="$1"
-    if [ -f "$file" ]
-    then
-        echo "git_writehash: "$file" already exists. First delete existing output file."
-        exit 1
-    fi
-    ${cmd} > "$file"
-else
+function helpandpanic()
+{
     echo 'git_writehash <file>'
     echo 'Echo git hash'
     echo ''   
     echo 'git_writehash <file>'
-    echo 'Write git hash into a file. Exists if file already exists.'
+    echo 'Write git hash into a file. Exists if file already exists. Writes <hash>_modified if there are uncommitted changes '
+    echo ''   
+    echo 'EXIT CODES'
+    echo '  0 normally'
+    echo '  1 if there are uncommited changes'
+    echo '  2 if <file> already exists'
+    echo '  3 if the number of input args is invalid'
+    echo '  other if a subprocess fails (eg, not a git repository)'
     echo ''   
     echo 'SUGGESTED USE'   
     echo 'Call git_uniqueid to generate a log directory in the beginning of an experiment script'   
@@ -34,6 +27,34 @@ else
     echo 'git_writehash   Write git hash into a file'
     echo 'git_checkhash   Check whether the current git hash to make sure the right code-base is being used for evaluating a pre-trained model'
     exit 3
+}
+
+# NO! cmd='command git rev-list --full-history --all | head -1' 
+# If we've checkout an old revision (ie. in detached-HEAD state), this returns an incorrect result.
+h=$(command git rev-parse --verify HEAD)
+# not a git repository: git_writehash returns 128.
+
+if [[ -z $(command git status -s) ]]; then # see https://stackoverflow.com/questions/3878624/how-do-i-programmatically-determine-if-there-are-uncommited-changes
+    rc=0 # return code
+else
+    h=${h}_modified
+    rc=1 # return code
+fi
+
+if [ "$#" -eq 0 ]; then
+    echo $h 
+    exit $rc
+elif [ "$#" -eq 1 ]; then
+    file="$1"
+    if [ -f "$file" ]
+    then
+        echo "git_writehash: "$file" already exists. First delete existing output file."
+        exit 1
+    fi
+    echo $h > "$file"
+    exit $rc
+else
+    helpandpanic
 fi
 
 
