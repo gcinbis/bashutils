@@ -1,0 +1,32 @@
+#!/bin/bash
+set -e
+
+# convert a pdf into grayscale
+function pdftogray() {
+    # no! local args=($*)
+    # no! local narg=${#args[@]}
+    local narg=$#
+    local inp=$1
+    local out=$2
+
+    if [ $narg -ne 2 ]
+    then
+        echo "USAGE: pdftogray inputfile outputfile"
+        return 1
+    fi
+    
+    # avoid overwriting by mistake
+    if [ -f $out ]
+    then
+        echo "Output: $out already exists. First delete existing output file."
+        return 1
+    fi
+
+    cmd="gs -sOutputFile=$out -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray -dCompatibilityLevel=1.4 -dNOPAUSE -dBATCH $inp"
+    echo $cmd
+    $cmd
+}
+
+# ok with multiple quoted arguments
+pdftogray "$@"
+
