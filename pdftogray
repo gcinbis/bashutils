@@ -3,7 +3,7 @@ set -e
 
 # convert a pdf into grayscale
 function pdftogray() {
-    # no! local args=($*)
+    # no! local args=($*) -- does not handle quotes.
     # no! local narg=${#args[@]}
     local narg=$#
     local inp=$1

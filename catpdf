@@ -5,26 +5,34 @@ set -e
 # usage: catpdf *pdf output.pdf
 
 function catpdf() {
-    local args=($*) # todo: does this handle spaces correctly?
-    local narg=${#args[@]}
-    local out=${args[$narg-1]}
-    
+    #local args=($*) -- does not handle quotes.
+    #local narg=${#args[@]}
+    #local out=${args[$narg-1]}
+    local narg=$#
+    local out=${!narg}
+
     # avoid overwriting by mistake
-    if [ -f $out ]
+    if [ -f "$out" ]
     then
-        echo "Output: $out already exists. First delete existing output file."
+        echo "Output: '$out' already exists. First delete existing output file."
         return 1
     fi
 
     local cmd="gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$out" 
-    for (( i = 0 ; i < ($narg-1); i++ ))
+
+    # old version, base 0 indexing:
+    #for (( i = 0 ; i < ($narg-1); i++ ))
+    #do
+    #    cmd="$cmd ${args[$i]}" 
+    #done    
+    for (( i = 1 ; i < $narg; i++ ))
     do
-        cmd="$cmd ${args[$i]}" # todo: does this handle spaces correctly?
+        cmd="$cmd ${!i}" # todo: how to support spaces here? variable referencing is fine but cannot pass into the cmd like this.
     done    
+    
     echo $cmd
     $cmd
 }
-
 
 catpdf "$@"
 
