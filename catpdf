@@ -4,12 +4,12 @@ set -e
 # to concatenate pdf files: catpdf input1 input2 .. inputN output
 # usage: catpdf *pdf output.pdf
 
-function catpdf() {
+#function catpdf() {
     #local args=($*) -- does not handle quotes.
     #local narg=${#args[@]}
     #local out=${args[$narg-1]}
-    local narg=$#
-    local out=${!narg}
+    narg=$#
+    out=${!narg}
 
     # avoid overwriting by mistake
     if [ -f "$out" ]
@@ -18,21 +18,16 @@ function catpdf() {
         return 1
     fi
 
-    local cmd="gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$out" 
+    cmd="gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$out" 
 
-    # old version, base 0 indexing:
-    #for (( i = 0 ; i < ($narg-1); i++ ))
-    #do
-    #    cmd="$cmd ${args[$i]}" 
-    #done    
     for (( i = 1 ; i < $narg; i++ ))
     do
-        cmd="$cmd ${!i}" # todo: how to support spaces here? variable referencing is fine but cannot pass into the cmd like this.
+        cmd="$cmd \"${!i}\"" # add \"...\" to support filenames with spaces
     done    
     
     echo $cmd
-    $cmd
-}
+    eval $cmd # use eval to parse quotes properly (see more here: https://stackoverflow.com/questions/411495/build-argument-lists-containing-whitespace)
+#}
 
-catpdf "$@"
+#catpdf "$@"
 
