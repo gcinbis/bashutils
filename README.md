@@ -21,6 +21,7 @@ Standalone utilities.
 
 * getpdfXplore:                 Download papers by ID from IEEE Xplore (requires institutional/login-free subscription).
 * minify_css:                   Script for minifying CSS files.
+* bib2html                      Auto-create bibliography web page based on a jinja template and YAML-formatted data.
 
 ## Git utilities
 
@@ -39,6 +40,8 @@ Standalone utilities.
 * video2ipad:                   Convert video file to iPad-compatible format (not perfect, though).
 * video2tv:                     Convert image file into a mp4 file readable by most TVs.
 * img2canon:                    Convert image file into a format readable by Canon printers.
+
+
 
 
 
