@@ -1,7 +1,7 @@
 utils
 =====
 
-Standalone utilities.
+Standalone utilities and misc notes on system configuration.
 
 ## Text and TeX utilities
 
@@ -41,6 +41,9 @@ Standalone utilities.
 * video2tv:                     Convert image file into a mp4 file readable by most TVs.
 * img2canon:                    Convert image file into a format readable by Canon printers.
 
+## Misc notes
+
+* [How to share printer from Linux to Mac](notes/LinuxToMacPrinterShare.md) 
 
 
 
