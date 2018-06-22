@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [[ $# < 1 ]]; then
+    echo "DESCRIPTION"
+    echo "List user processes matching to a regular expression."
+    echo "USAGE"
+    echo "psapp regexp"
+    exit 1
+fi
+
+ps aux | grep "^$USER" | grep -i "$*"
+
