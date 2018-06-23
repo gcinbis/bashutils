@@ -4,11 +4,11 @@ set -e
 if [ $# -ne 3 ]
 then
    echo Add text to the first page of a pdf file
-   echo pdf_add_header_first_page file_in file_out text
+   echo pdf-add-header-first-page file_in file_out text
    echo
    echo Useful for bulk processing and printing a set of pdffiles, example:
    echo   'mkdir tmp'
-   echo   'for x in *.pdf; do pdf_add_header_first_page $x tmp/$x ${x%.*}; done'
+   echo   'for x in *.pdf; do pdf-add-header-first-page $x tmp/$x ${x%.*}; done'
    echo   'catpdf tmp/*.pdf combined.pdf'
    echo   'rm -rf tmp'
    exit

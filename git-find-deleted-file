@@ -12,8 +12,8 @@ elif [ $# -eq 2 ]; then
         git rev-list -n 1 HEAD -- "$1"
     fi
 else
-    echo "USAGE: git_find_deleted_file <file_path>"
-    echo "       git_find_deleted_file <file_path> <checkout>"
+    echo "USAGE: git-find-deleted-file <file_path>"
+    echo "       git-find-deleted-file <file_path> <checkout>"
     echo "If <checkout>=1: File will be checked-out"
     echo "           else: Only the commit that deleted the file will be printed"
 fi

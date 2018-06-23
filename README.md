@@ -15,25 +15,28 @@ Standalone utilities and misc notes on system configuration.
 ## PDF utilities
 * `catpdf`                       Concatenate multiple pdf files into a single one.
 * `mypdfdiff`                    Diff two pdfs.
-* `pdf_add_header_first_page`    Add a custom header to the first page of a pdf file.
+* `pdf-add-header-first-page`    Add a custom header to the first page of a pdf file.
 
 ## Web utilities
 
 * `getpdfXplore`                 Download papers by ID from IEEE Xplore (requires institutional/login-free subscription).
-* `minify_css`                   Script for minifying CSS files.
+* `minify-css`                   Script for minifying CSS files.
 * `bib2html`                     Auto-create bibliography web page based on a jinja template and YAML-formatted data.
 
 ## Git utilities
 
-* `git_uniqueid`                 Generate a unique id for the current source code.
-* `git_find_deleted_file`        A git shortcut.
+* `git-uniqueid`                 Generate a unique id for the current source code.
+* `git-writehash`                Write git hash into a file.
+* `git-checkhash`                Check whether the current git hash to make sure the right code-base is being used for evaluating a pre-trained model.
+* `git-find-deleted-file`        A git shortcut.
 
 ## System utilities
 
-* `mvln`                         Move and link shortcut.
-* `strrep`                       String find-and-replace.
-* `psapp`                        List user processes matching to a regular expression.
-* `killapp`                      Send KILL signal to user processes matching to a regular expression.
+* `mvln`                                Move and link shortcut.
+* `strrep`                              String find-and-replace.
+* `psapp`                               List user processes matching to a regular expression.
+* `killapp`                             Send KILL signal to user processes matching to a regular expression.
+* `gnome-remotedesktop-toggleprompt`    Enable/disable Gnome Shell remote desktop prompt for security purposes.
 
 ## File conversion
 
