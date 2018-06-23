@@ -1,0 +1,18 @@
+#!/bin/bash
+# DO NOT: set -e
+
+x=`gsettings get org.gnome.Vino prompt-enabled`
+if [[ $x == "true" ]]; then
+    gsettings set org.gnome.Vino prompt-enabled false
+    echo "Disabled remote desktop prompt, be careful!"
+    exit 0
+elif [[ $x == false ]]; then
+    gsettings set org.gnome.Vino prompt-enabled true
+    echo "Enabled remote desktop prompt (now secure)."
+    exit 1
+else
+    echo "Unknown error"
+    exit 2
+fi
+
+
