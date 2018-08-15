@@ -1,0 +1,61 @@
+#!/bin/bash
+set -e
+
+# convert a pdf into grayscale
+function printtwosided() {
+    # no! local args=($*) -- does not handle quotes.
+    # no! local narg=${#args[@]}
+    local narg=$#
+    local file="$1"
+    local outdir="$2"
+
+    if [ $narg -ne 2 ]
+    then
+        echo "USAGE: pdf-print-two-sided input.pdf outdir"
+        echo "Generates outdir/input-PrintFirst.pdf outdir/input-PrintSecond.pdf"
+        return 1
+    fi
+
+    # separate input name and extension
+    inp_noext="${file%.*}" 
+    inp_ext="${file##*.}" 
+    if [ $inp_ext != "pdf" ]; then
+        echo "Unexpected extension of the input: $inp_ext"
+        return 1
+    fi
+
+    # determine output filenames
+    out1="$outdir/${inp_noext}-PrintFirst.pdf"
+    out2="$outdir/${inp_noext}-PrintSecond.pdf"
+    
+    # avoid overwriting by mistake
+    if [ -f "$out1" ]
+    then
+        echo "Output: $out1 already exists. First delete existing output file."
+        return 1
+    fi
+    if [ -f "$out2" ]
+    then
+        echo "Output: $out2 already exists. First delete existing output file."
+        return 1
+    fi
+
+    cmd1="pdftk A=\"$file\" cat Aeven output \"$out2\""
+    cmd2="pdftk A=\"$out2\" cat Aend-1 output \"$out1\""
+    cmd3="pdftk A=\"$file\" cat Aodd output \"$out2\""
+    echo $cmd1
+    echo $cmd2
+    echo $cmd3
+
+    # use eval to parse quotes properly (see more here: https://stackoverflow.com/questions/411495/build-argument-lists-containing-whitespace)
+    eval $cmd1
+    eval $cmd2
+    eval $cmd3
+    echo "Done. Files are ready: $out1, $out2"
+}
+
+# ok with multiple quoted arguments
+printtwosided "$@"
+
+
+

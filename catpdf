@@ -18,7 +18,7 @@ set -e
         return 1
     fi
 
-    cmd="gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$out" 
+    cmd="gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=\"$out\"" 
 
     for (( i = 1 ; i < $narg; i++ ))
     do

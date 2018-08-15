@@ -22,9 +22,9 @@ function pdftogray() {
         return 1
     fi
 
-    cmd="gs -sOutputFile=$out -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray -dCompatibilityLevel=1.4 -dNOPAUSE -dBATCH $inp"
+    cmd="gs -sOutputFile=\"$out\" -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray -dCompatibilityLevel=1.4 -dNOPAUSE -dBATCH \"$inp\""
     echo $cmd
-    $cmd
+    eval $cmd # use eval to parse quotes properly (see more here: https://stackoverflow.com/questions/411495/build-argument-lists-containing-whitespace)
 }
 
 # ok with multiple quoted arguments
