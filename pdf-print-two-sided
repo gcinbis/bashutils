@@ -17,9 +17,10 @@ function printtwosided() {
     fi
 
     # separate input name and extension
-    inp_noext="${file%.*}" 
-    inp_ext="${file##*.}" 
-    if [ $inp_ext != "pdf" ]; then
+    inp_nopath="$(basename $file)" # first remove the preceding path
+    inp_noext="${inp_nopath%.*}" 
+    inp_ext="${inp_nopath##*.}" 
+    if [ "$inp_ext" != "pdf" ]; then
         echo "Unexpected extension of the input: $inp_ext"
         return 1
     fi
@@ -27,7 +28,7 @@ function printtwosided() {
     # determine output filenames
     out1="$outdir/${inp_noext}-PrintFirst.pdf"
     out2="$outdir/${inp_noext}-PrintSecond.pdf"
-    
+
     # avoid overwriting by mistake
     if [ -f "$out1" ]
     then
