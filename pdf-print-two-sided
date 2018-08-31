@@ -12,7 +12,7 @@ function printtwosided() {
     if [ $narg -ne 2 ]
     then
         echo "USAGE: pdf-print-two-sided input.pdf outdir"
-        echo "Generates outdir/input-PrintFirst.pdf outdir/input-PrintSecond.pdf"
+        echo "Generates outdir/input-PrintFIRST.pdf outdir/input-PrintSECOND.pdf"
         return 1
     fi
 
@@ -26,8 +26,8 @@ function printtwosided() {
     fi
 
     # determine output filenames
-    out1="$outdir/${inp_noext}-PrintFirst.pdf"
-    out2="$outdir/${inp_noext}-PrintSecond.pdf"
+    out1="$outdir/${inp_noext}-PrintFIRST.pdf"
+    out2="$outdir/${inp_noext}-PrintSECOND.pdf"
 
     # avoid overwriting by mistake
     if [ -f "$out1" ]
