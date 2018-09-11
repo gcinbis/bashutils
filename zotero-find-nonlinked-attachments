@@ -5,18 +5,19 @@
 
 import sys
 import xml.etree.ElementTree as ET
+from math import log
 
 def printNode(subtree):
     # generic print
     print(ET.tostring(subtree, encoding='utf8', method='xml').decode())
 
-def printAttachment(e,nsmap):
+def listAttachment(e,nsmap,lst):
     # print attachment information
     #for child in e:
     #    print(child.tag, child.attrib)
     for child in e:
         if child.tag==('{' + nsmap['dc'] + '}title'):
-            print(child.text)
+            lst.append(child.text)
 
 def processXml(path):
     tree = ET.parse(path)
@@ -24,21 +25,31 @@ def processXml(path):
     nsmap = dict([node for _, node in ET.iterparse(path,events=['start-ns'])])
 
     # note that namespaces are defined in the beginning of the RDF file:
-    # xmlns:z="http://www.zotero.org/namespaces/export#"
+    #   xmlns:z="http://www.zotero.org/namespaces/export#"
     # Therefore, the following works:
-    # found=root.findall("*[{http://www.zotero.org/namespaces/export#}linkMode='1']")
+    #   found=root.findall("*[{http://www.zotero.org/namespaces/export#}linkMode='1']")
+    #
     # However, I prefer avoiding hard-coding the namespace, so this is bettter:
-    found=root.findall("*[{" + nsmap['z'] + "}linkMode='1']")
+    # found=root.findall("*[{" + nsmap['z'] + "}linkMode='1']")
+    # This is even better:
+    found=root.findall("*[z:linkMode='1']",nsmap)
     #doesn't work: found=root.findall("*/[{__Z__#}linkMode='1']",{'xmlns:z':'__Z__#'})
 
+    fileList = []
     for e in found:
-        printAttachment(e,nsmap)
+        listAttachment(e,nsmap,fileList)
+
+    i = 0
+    fmt = "%" + str(int(log(1.0+len(fileList)) / log(10.0) + 1)) + "d."
+    for f in sorted(fileList):
+        i = i + 1
+        print((fmt % i),f)
 
 def run(sys):
     if not len(sys.argv)==2:
         print("Find non-linked attachments in a Zotero library")
         print("USAGE")
-        print("zoteroFindNonLinkedFromRDF Zotero-RDF-Exported-Library-File-Path")
+        print("zotero-find-nonlinked-attachments ZoteroRDF_Library_Export.rdf")
     else:
         processXml(sys.argv[1])
 
