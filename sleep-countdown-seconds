@@ -1,0 +1,23 @@
+#!/bin/bash 
+
+function sleep_countdown_func() {
+    local narg=$#
+
+    if [ $narg -ne 1 ]
+    then
+        echo "USAGE: sleep-countdown-seconds <seconds>"
+        return 1
+    fi
+
+    # source
+    secs=$1
+    while [ $secs -gt 0 ]; do
+       echo -ne "Wait $secs seconds...\033[0K\r"
+       sleep 1
+       : $((secs--))
+    done
+}
+
+# ok with multiple quoted arguments
+sleep_countdown_func "$@"
+
