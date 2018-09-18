@@ -1,0 +1,14 @@
+#!/bin/bash 
+#
+# Reads the selection clipboard, processes using turkish-deasciify, and then saves it into main clipboard:  
+#
+# To setup a shortcut in Ubuntu, use the following steps:
+#   - Create keyboard shortcut with name: turkish-deasciify-selection-to-clipboard
+#   - Command: path-to/bashutils/turkish-deasciify-selection-to-clipboard
+#   - Shortcut: Shift-Ctrl-D (so that you can easily paste afterwards)
+
+xsel -op | turkish-deasciify | xsel -ib
+
+echo "The selection buffer has been turkish-deasciify'ed and saved into the clipboard buffer."
+
+
