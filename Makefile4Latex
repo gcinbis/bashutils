@@ -35,7 +35,11 @@ ifneq "$(PDFDIR)" "."
 endif
 FINALPDFFILE="$(PDFDIR)/stable_$(TEXFILE:.tex=.pdf)"
 
-CMDPDFMAIN=pdflatex -output-directory $(PDFDIR) $(TEXFILE)
+ifeq "$(OSTYPE)" "linux-gnu"
+    CMDPDFMAIN=pdflatex -output-directory=$(PDFDIR) $(TEXFILE)
+else
+    CMDPDFMAIN=pdflatex -output-directory $(PDFDIR) $(TEXFILE)
+endif 
 CMDPDF=$(CMDPDFMAIN) -file-line-error -interaction=nonstopmode | grep -i -e warn -e error -e pages -B4 -A4 -e '^l.' -e '^?' # hangs in cygwin in interactive mode
 #CMDPDF=$(CMDPDFMAIN) -interaction=nonstopmode
 

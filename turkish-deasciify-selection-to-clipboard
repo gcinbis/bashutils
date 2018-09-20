@@ -5,7 +5,10 @@
 # To setup a shortcut in Ubuntu, use the following steps:
 #   - Create keyboard shortcut with name: turkish-deasciify-selection-to-clipboard
 #   - Command: path-to/bashutils/turkish-deasciify-selection-to-clipboard
-#   - Shortcut: Shift-Ctrl-D (so that you can easily paste afterwards)
+#   - Shortcut: Something that you can easily paste afterwards. My suggestion: Ctrl-F9.
+#
+
+# Gokberk Cinbis, September 2018
 
 xsel -op | turkish-deasciify | xsel -ib
 
