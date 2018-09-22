@@ -1,17 +1,35 @@
 #!/bin/bash 
 #
-# Reads the selection clipboard, processes using turkish-deasciify, and then saves it into main clipboard:  
+# On LINUX:
+#   Reads the selection clipboard, processes using turkish-deasciify, and then saves it into main clipboard.
 #
-# To setup a shortcut in Ubuntu, use the following steps:
+#   To setup a shortcut in Ubuntu, use the following steps:
 #   - Create keyboard shortcut with name: turkish-deasciify-selection-to-clipboard
 #   - Command: path-to/bashutils/turkish-deasciify-selection-to-clipboard
 #   - Shortcut: Something that you can easily paste afterwards. My suggestion: Ctrl-F9.
 #
-
+# On MAC:
+#   Reads the main clipboard, processes using turkish-deasciify, and then saves it into main clipboard.
+#
 # Gokberk Cinbis, September 2018
 
-xsel -op | turkish-deasciify | xsel -ib
+# https://stackoverflow.com/questions/3466166/how-to-check-if-running-in-cygwin-mac-or-linux
+unameOut="$(\uname -s)"
+case "${unameOut}" in
+    Linux*)     machine=Linux;;
+    Darwin*)    machine=Mac;;
+    CYGWIN*)    machine=Cygwin;;
+    MINGW*)     machine=MinGw;;
+    *)          machine="UNKNOWN:${unameOut}"
+esac
+#echo ${machine}
 
-echo "The selection buffer has been turkish-deasciify'ed and saved into the clipboard buffer."
+if [[ $machine == "Mac" ]]; then
+    pbpaste | turkish-deasciify | pbcopy
+    echo "The clipboard content has been turkish-deasciify'ed and saved back into the clipboard buffer."
+else
+    xsel -op | turkish-deasciify | xsel -ib
+    echo "The selection buffer has been turkish-deasciify'ed and saved into the clipboard buffer."
+fi
 
 
