@@ -1,0 +1,58 @@
+#!/bin/bash
+set -e
+
+if [[ $# < 1 ]]; then
+    echo "DESCRIPTION"
+    echo "Search user processes matching to a regular expression, with filtering"
+    echo "USAGE"
+    echo "grepapp regexp"
+    echo ""
+    echo "SEE killapp"
+    exit 1
+fi
+
+grep_cmd="grep -i \"$*\"" # add \"...\" to support patterns with spaces
+out=`ps aux | grep "^$USER" | eval $grep_cmd` 
+grep_no_quote="grep -i $*"
+
+# https://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
+SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+
+kill_pids=""
+
+lines_exclude='== OTHERS =='
+lines_include='== MAIN =='
+any_exclude=0
+any_include=0
+
+# loop over lines
+while read -r line; do
+    arr=($line)
+    pid="${arr[1]}"
+    exclude=0
+    if [[ $line == *${SCRIPTPATH}* ]]; then exclude=1; fi # if line contains the current script
+    if [[ $line == *${grep_no_quote}* ]]; then exclude=1; fi # if line contains the grep command
+    if [[ $$ == $pid ]]; then exclude=1; fi # if equal to pid of the script
+    if [[ $$ == $grep_pid ]]; then exclude=1; fi # if equal to pid of the grep subprocess
+    if [[ $exclude == 1 ]]; then
+        lines_exclude="$lines_exclude\n$line"
+        any_exclude=1
+    else 
+        lines_include="$lines_include\n$line"
+        kill_pids="$kill_pids $pid"
+        any_include=1
+    fi
+done <<< "$out"
+
+if [[ $any_exclude == 1 ]]; then
+    echo -e "$lines_exclude"
+    echo
+fi
+
+if [[ $any_include == 1 ]]; then
+    echo -e "$lines_include"
+else
+    echo "No matching process."
+fi
+
+

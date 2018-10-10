@@ -2,9 +2,11 @@
 
 if [[ $# < 1 ]]; then
     echo "DESCRIPTION"
-    echo "List user processes matching to a regular expression."
+    echo "List user processes matching to a regular expression, without filtering"
     echo "USAGE"
     echo "psapp regexp"
+    echo ""
+    echo "SEE grepapp killapp"
     exit 1
 fi
 
