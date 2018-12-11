@@ -1,0 +1,109 @@
+#!/bin/bash
+#
+# Author: Gokberk Cinbis, 2018
+#
+# Useful references: 
+# * https://www.omgubuntu.co.uk/2017/07/adjust-color-temperature-gnome-night-light
+
+set -e
+
+
+function print_settings_and_exit {
+    for x in "active" "night-light-enabled" "night-light-schedule-automatic" "night-light-schedule-from" "night-light-schedule-to" "night-light-temperature"; do
+        echo "$x:" `gsettings get org.gnome.settings-daemon.plugins.color $x`
+    done
+    exit 0
+}
+
+function print_help_and_exit() {
+    echo 'USAGE'
+    echo 'gnome-color-temperature info'
+    echo '  Print current settings.'   
+    echo ''
+    echo 'gnome-color-temperature editor'
+    echo '  Open settings in dconf-editor.'   
+    echo ''
+    echo 'gnome-color-temperature cool'
+    echo '  Set color temperature to 6500.'   
+    echo ''
+    echo 'gnome-color-temperature balanced-cool'
+    echo '  Set color temperature to 6000.'   
+    echo ''
+    echo 'gnome-color-temperature balanced'
+    echo '  Set color temperature to 5500.'   
+    echo ''
+    echo 'gnome-color-temperature warm'
+    echo '  Set color temperature to 4000.'   
+    echo ''
+    echo 'gnome-color-temperature all-day'
+    echo '  Enable and set all day active.'   
+    echo ''
+    echo 'gnome-color-temperature disable'
+    echo '  Disable.'   
+    exit 1
+}
+
+if [ "$#" -eq 0 ]; then
+    print_help_and_exit
+fi
+
+
+opt1="$1"
+
+if [ "$opt1" == "info" ]; then
+    print_settings_and_exit
+fi
+
+
+if [ "$opt1" == "editor" ]; then
+    dconf-editor org.gnome.settings-daemon.plugins.color
+    exit 0
+fi
+
+if [ "$opt1" == "warm" ]; then
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 4000
+    exit 0
+fi
+
+if [ "$opt1" == "balanced" ]; then
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 5500
+    exit 0
+fi
+
+if [ "$opt1" == "balanced-cool" ]; then
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 6000
+    exit 0
+fi
+
+if [ "$opt1" == "cool" ]; then
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 6500
+    exit 0
+fi
+
+
+if [ "$opt1" == "all-day" ]; then
+    gsettings set org.gnome.settings-daemon.plugins.color active true
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-automatic false
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 0
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 23.59
+    exit 0
+fi
+
+if [ "$opt1" == "disable" ]; then
+    gsettings set org.gnome.settings-daemon.plugins.color active true
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled false
+    exit 0
+fi
+
+if [ "$opt1" == "auto-location" ]; then
+    gsettings set org.gnome.settings-daemon.plugins.color active true
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-automatic true
+    exit 0
+fi
+
+
+# haven't exited yet, print help and exit
+print_help_and_exit
+
