@@ -38,6 +38,7 @@ Standalone utilities and misc notes on system configuration.
 * `psapp`                                       List user processes matching to a regular expression.
 * `killapp`                                     Send KILL signal to user processes matching to a regular expression.
 * `gnome-remotedesktop-toggleprompt`            Enable/disable Gnome Shell remote desktop prompt for security purposes.
+* `gnome-color-temperature`                     Shortcuts to alter Gnome color temperature settings.
 
 ## File conversion
 
