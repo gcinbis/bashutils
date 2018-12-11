@@ -3,6 +3,8 @@ utils
 
 Standalone utilities and misc notes on system configuration.
 
+Gokberk Cinbis, 2018.
+
 ## Text and TeX utilities
 
 * `aligntable`                                  Align table columns. Particularly useful for latex tables via vim & emacs.
