@@ -31,6 +31,12 @@ function print_help_and_exit() {
     echo 'gnome-color-temperature balanced'
     echo '  Set color temperature to 5500.'   
     echo ''
+    echo 'gnome-color-temperature balanced-warm'
+    echo '  Set color temperature to 5000.'   
+    echo ''
+    echo 'gnome-color-temperature balanced-warmer'
+    echo '  Set color temperature to 4500.'   
+    echo ''
     echo 'gnome-color-temperature warm'
     echo '  Set color temperature to 4000.'   
     echo ''
@@ -62,6 +68,16 @@ fi
 
 if [ "$opt1" == "warm" ]; then
     gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 4000
+    exit 0
+fi
+
+if [ "$opt1" == "balanced-warmer" ]; then
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 4500
+    exit 0
+fi
+
+if [ "$opt1" == "balanced-warm" ]; then
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 5000
     exit 0
 fi
 
