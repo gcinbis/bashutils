@@ -7,7 +7,6 @@
 
 set -e
 
-
 function print_settings_and_exit {
     for x in "active" "night-light-enabled" "night-light-schedule-automatic" "night-light-schedule-from" "night-light-schedule-to" "night-light-temperature"; do
         echo "$x:" `gsettings get org.gnome.settings-daemon.plugins.color $x`
@@ -36,7 +35,10 @@ function print_help_and_exit() {
     echo '  Set color temperature to 4000.'   
     echo ''
     echo 'gnome-color-temperature all-day'
-    echo '  Enable and set all day active.'   
+    echo '  Enable the tool and set all day active.'   
+    echo ''
+    echo 'gnome-color-temperature location-based'
+    echo '  Enable the tool and its location-based scheduling option.'
     echo ''
     echo 'gnome-color-temperature disable'
     echo '  Disable.'   
@@ -47,13 +49,11 @@ if [ "$#" -eq 0 ]; then
     print_help_and_exit
 fi
 
-
 opt1="$1"
 
 if [ "$opt1" == "info" ]; then
     print_settings_and_exit
 fi
-
 
 if [ "$opt1" == "editor" ]; then
     dconf-editor org.gnome.settings-daemon.plugins.color
@@ -80,7 +80,6 @@ if [ "$opt1" == "cool" ]; then
     exit 0
 fi
 
-
 if [ "$opt1" == "all-day" ]; then
     gsettings set org.gnome.settings-daemon.plugins.color active true
     gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
@@ -96,13 +95,12 @@ if [ "$opt1" == "disable" ]; then
     exit 0
 fi
 
-if [ "$opt1" == "auto-location" ]; then
+if [ "$opt1" == "location-based" ]; then
     gsettings set org.gnome.settings-daemon.plugins.color active true
     gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
     gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-automatic true
     exit 0
 fi
-
 
 # haven't exited yet, print help and exit
 print_help_and_exit
