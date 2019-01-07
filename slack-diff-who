@@ -1,0 +1,48 @@
+#!/bin/bash
+set -e
+
+echo "An interactive tool to find differences between the members of two channels."
+echo "Run /who command in both channels and paste results below followng the directions."
+
+echo '#channel1 members:'
+read who1
+echo ''
+
+echo '#channel2 members:'
+read who2
+echo ''
+
+function preproc() {
+    # convert the /who output into a line-by-line list of usernames
+    local x="$1"
+    local x="${x#'Users here: '}" # remove prefix (if exists)
+    local x="${x%' ... and you!'}" # remove suffix (if exists)
+    local x="$(echo ${x} | \sed 's/, @/\n@/g')" # replace commas with newline
+
+    # sort and dump the list into a temporary file
+    local f="$(mktemp)"
+    echo "--- Channel $2 ---" > "$f"
+    echo "$x" | \sort >> "$f"
+    echo "$f" # return the filename
+}
+
+
+# remove "Users here: " prefix
+f1=$(preproc "$who1" "1")
+f2=$(preproc "$who2" "2")
+
+\vimdiff "$f1" "$f2"
+
+if [ -f "$f1" ]; then
+    \rm -f $f1
+else
+    echo "Skipped deleting this: $f1"
+fi
+
+if [ -f "$f2" ]; then
+    \rm -f $f2
+else
+    echo "Skipped deleting this: $f2"
+fi
+
+
