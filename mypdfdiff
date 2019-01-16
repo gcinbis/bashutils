@@ -1,17 +1,35 @@
 #!/bin/bash
+#set -e
 
-if [ $# -ne 3 ]
+if [ $# -eq 2 ]
 then
-    echo "Usage: mypdfdiff <pdf1> <pdf2> <numberOfPages>"
+    end=100
+elif [ $# -eq 3 ]
+then 
+    end=$(expr $3 - 1)
+else
+    echo "Usage: mypdfdiff <pdf1> <pdf2> [MaxNumberOfPages=100]"
     echo "Output files are named __delta__<page>.pdf"
+    echo ""
+    echo "The script processes upto MaxNumberOfPages pages, until an error occurs."
+    echo ""
+    echo ""
     echo "Requires ImageMagick's compare tool"
+    echo "To give the permissions, edit /etc/ImageMagick*/policy.xml and change the following line:"
+    echo '<policy domain="coder" rights="none" pattern="PDF" />'
+    echo " to "
+    echo '<policy domain="coder" rights="read|write" pattern="PDF" />'
     exit 1 
 fi
 
-end=$(expr $3 - 1)
 for i in `seq 0 $end`;
 do
     echo __delta__$i.pdf: "$1"[$i] vs "$2"[$i] 
     compare  "$1"[$i] "$2"[$i] -compose src __delta__$i.pdf
+    e="$?"
+    if [ $e -ne 1 ]; then
+        echo "Error code: $e, auto-stopping the script."
+        exit $e
+    fi
 done
 
