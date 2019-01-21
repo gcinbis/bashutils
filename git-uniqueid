@@ -68,12 +68,12 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     # commitindex=`git rev-list --full-history --all --abbrev-commit | wc -l | sed -e 's/^ *//'` # commit index
 
     set +e # forgive errors below
-    h=`git-writehash` # hash
+    h=`command git-writehash` # hash
     writehash_exit=$?
     set -e # exit on error
 
-    branch=`git rev-parse --abbrev-ref HEAD`
-    if [[ -z $(git status -s) ]]; then # see https://stackoverflow.com/questions/3878624/how-do-i-programmatically-determine-if-there-are-uncommited-changes
+    branch=`command git rev-parse --abbrev-ref HEAD`
+    if [[ -z $(command git status -s) ]]; then # see https://stackoverflow.com/questions/3878624/how-do-i-programmatically-determine-if-there-are-uncommited-changes
         rc=$writehash_exit # return code is zero unless git-writehash has reported an error
     else
         # git-writehash does this: h=${h}_modified

@@ -17,7 +17,7 @@ function printtwosided() {
     fi
 
     # separate input name and extension
-    inp_nopath="$(basename $file)" # first remove the preceding path
+    inp_nopath=$(basename "$file") # first remove the preceding path
     inp_noext="${inp_nopath%.*}" 
     inp_ext="${inp_nopath##*.}" 
     if [ "$inp_ext" != "pdf" ]; then
