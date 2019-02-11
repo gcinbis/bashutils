@@ -1,18 +1,29 @@
 #!/bin/bash
 set -e
 
+MYTEMP="$HOME/temp"
+
+function cleanup() {
+    # note: it is safer to delete the temporary directory, without filenames.
+    echo "command rm -rf \"$1\""
+    command rm -rf "$1"
+}
+
 # convert a pdf into grayscale
 function printtwosided() {
     # no! local args=($*) -- does not handle quotes.
     # no! local narg=${#args[@]}
     local narg=$#
     local file="$1"
-    local outdir="$2"
 
-    if [ $narg -ne 2 ]
+    if [ $narg -ne 1 ]
     then
-        echo "USAGE: pdf-print-two-sided input.pdf outdir"
-        echo "Generates outdir/input-PrintFIRST.pdf outdir/input-PrintSECOND.pdf"
+        echo "USAGE: pdf-print-two-sided input.pdf"
+        echo "Generates two temporary files, opens the pdf files, and then deletes the temporary files."
+        echo ""
+        echo "Since pdftk (a snap-app) behaves erratic with files under /tmp or /var/tmp, creates and uses a temp folder under \$HOME/temp."
+        echo ""
+        echo "Uses evince as the pdf reader."
         return 1
     fi
 
@@ -26,8 +37,10 @@ function printtwosided() {
     fi
 
     # determine output filenames
-    out1="$outdir/${inp_noext}-PrintFIRST.pdf"
-    out2="$outdir/${inp_noext}-PrintSECOND.pdf"
+    mkdir -p "$MYTEMP"
+    local tdir=`command mktemp -d -p "$MYTEMP"` # creates a directory 
+    local out1="$tdir/${inp_noext}-FIRST.pdf"
+    local out2="$tdir/${inp_noext}-SECOND.pdf"
 
     # avoid overwriting by mistake
     if [ -f "$out1" ]
@@ -41,18 +54,29 @@ function printtwosided() {
         return 1
     fi
 
+    # snaps have difficult in accessing files under /tmp 
+    # see: https://github.com/smoser/pdftk/issues/1
+
     cmd1="pdftk A=\"$file\" cat Aeven output \"$out2\""
     cmd2="pdftk A=\"$out2\" cat Aend-1 output \"$out1\""
     cmd3="pdftk A=\"$file\" cat Aodd output \"$out2\""
-    echo $cmd1
-    echo $cmd2
-    echo $cmd3
 
     # use eval to parse quotes properly (see more here: https://stackoverflow.com/questions/411495/build-argument-lists-containing-whitespace)
+    echo $cmd1
     eval $cmd1
     eval $cmd2
+    echo $cmd2
     eval $cmd3
-    echo "Done. Files are ready: $out1, $out2"
+    echo $cmd3
+    echo "Files are now ready: $out1, $out2"
+    ls -al "$out1" "$out2"
+
+    # open the files
+    echo "Opening $out1"
+    evince "$out1"
+    echo "Opening $out2"
+    evince "$out2"
+    cleanup "$tdir"
 }
 
 # ok with multiple quoted arguments
