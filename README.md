@@ -19,6 +19,7 @@ Gokberk Cinbis, 2018.
 * `catpdf`                                      Concatenate multiple pdf files into a single one.
 * `mypdfdiff`                                   Diff two pdfs.
 * `pdf-add-header-first-page`                   Add a custom header to the first page of a pdf file.
+* `pdf-print-two-sided`                         Create and succesively open two pdf files to simplify manual double-sided printing.
 
 ## Web utilities
 
