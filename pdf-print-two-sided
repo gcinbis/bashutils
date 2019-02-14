@@ -69,11 +69,16 @@ function printtwosided() {
     eval $cmd3
     echo $cmd3
     echo "Files are now ready: $out1, $out2"
-    ls -al "$out1" "$out2"
+    # ls -al "$out1" "$out2"
+
+    echo ""
+    echo -e "\e[33m\e[40m\e[7m IMPORTANT: Make sure you disable duplex printing option, and use the single-side printing option instead in the Page Handling tab.\e[0m"
+    echo ""
+
 
     # open the files
     echo "Opening $out1"
-    evince "$out1"
+    evince "$out1"  # not all applications behave nicely for my purposes. evince is simple and robust. Mkae sure you do not use its duplex option. (Okular is ok but tabs are not compatible with the use case here.)
     echo "Opening $out2"
     evince "$out2"
     cleanup "$tdir"
