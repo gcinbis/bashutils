@@ -1,0 +1,38 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]
+then
+    echo "Usage: video2pngs <file> <format>"
+    echo "Dump all frames of a video into a folder, in png or jpeg format."
+    echo "<file> is the path to the video file"
+    echo "<format> shall be -png or -jpg"
+    echo
+    echo "A directory called './<file-nopath-noext>-frames' (under the current directory)"
+    echo "  will be created to store the output files, where file-nopath-noext is the filename"
+    echo "  without path prefix and without extension."
+    exit 1 
+fi
+
+if [ -f "$1" ]; then
+    tmp=`basename "$1"` # remove the path prefix from the filename
+    outdir="${tmp%.*}-frames" # remove the extension, add -frames
+else
+    echo "File could not be located: $1"
+    exit 1
+fi
+
+if [ "$2" = "-png" ]; then
+    command mkdir -p "$outdir"
+    echo command ffmpeg -i "$1" "$outdir/%04d.png"
+    command ffmpeg -i "$1" "$outdir/%04d.png"
+elif [ "$2" = "-jpg" ]; then
+    command mkdir -p "$outdir"
+    echo command ffmpeg -i "$1" "$outdir/%04d.jpg"
+    command ffmpeg -i "$1" "$outdir/%04d.jpg"
+else
+    echo "Output format flag is unrecognized: $2"
+    exit 1
+fi
+
+
+
