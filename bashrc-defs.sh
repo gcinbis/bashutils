@@ -79,6 +79,7 @@ alias git-undo-previous-commit-and-stage-file-without-changing-anything-else='gi
 alias git-unstage-and-rm-from-index-keep-local-files-asis='git rm --cached -r' # git rm --cached -r <dirname>, git rm --cached <filename>. Good for files being tracked due to a previous commit, and if you now want to git-ignore them.
 alias git-commit-silent='git diff-index --quiet HEAD || git commit' # no error signal if there is nothing to commit
 alias git-log-stat='git log --stat'
+alias git-brach-ls-all='git branch --list -a' 
 
 # ==============================
 # GNU screen
