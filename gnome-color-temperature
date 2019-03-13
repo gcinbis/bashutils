@@ -22,11 +22,17 @@ function print_help_and_exit() {
     echo 'gnome-color-temperature editor'
     echo '  Open settings in dconf-editor.'   
     echo ''
+    echo 'gnome-color-temperature custom <value>'
+    echo '  Set color temperature to <value>.'   
+    echo ''
     echo 'gnome-color-temperature cool'
     echo '  Set color temperature to 6500.'   
     echo ''
-    echo 'gnome-color-temperature balanced-cool'
+    echo 'gnome-color-temperature balanced-cooler'
     echo '  Set color temperature to 6000.'   
+    echo ''
+    echo 'gnome-color-temperature balanced-cool'
+    echo '  Set color temperature to 5750.'   
     echo ''
     echo 'gnome-color-temperature balanced'
     echo '  Set color temperature to 5500.'   
@@ -66,6 +72,11 @@ if [ "$opt1" == "editor" ]; then
     exit 0
 fi
 
+if [ "$opt1" == "custom" ]; then
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature "$2"
+    exit 0
+fi
+
 if [ "$opt1" == "warm" ]; then
     gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 4000
     exit 0
@@ -86,8 +97,13 @@ if [ "$opt1" == "balanced" ]; then
     exit 0
 fi
 
-if [ "$opt1" == "balanced-cool" ]; then
+if [ "$opt1" == "balanced-cooler" ]; then
     gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 6000
+    exit 0
+fi
+
+if [ "$opt1" == "balanced-cool" ]; then
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 5750
     exit 0
 fi
 
