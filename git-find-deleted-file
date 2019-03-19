@@ -4,18 +4,22 @@ set -e
 if [ $# -eq 1 ]; then
     echo "The commit in which the file was deleted:"
     git rev-list -n 1 HEAD -- "$1"
+    echo "Use 'git show <commit-id>' or 'git show <commit-id>:<file' to view the file."
 elif [ $# -eq 2 ]; then
     if [ $2 -eq 1 ]; then 
         git checkout $(git rev-list -n 1 HEAD -- "$1")^ -- "$1"
+        echo "The file has been checked-out."
     else
         echo "The commit in which the file was deleted:"
         git rev-list -n 1 HEAD -- "$1"
+        echo "Use 'git show <commit-id>' or 'git show <commit-id>:<file' to view the file."
     fi
 else
     echo "USAGE: git-find-deleted-file <file_path>"
     echo "       git-find-deleted-file <file_path> <checkout>"
     echo "If <checkout>=1: File will be checked-out"
     echo "           else: Only the commit that deleted the file will be printed"
+    echo "Use 'git show <commit-id>' or 'git show <commit-id>:<file' to view the file."
 fi
 
 
