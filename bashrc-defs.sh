@@ -32,7 +32,7 @@ function d() {
 alias ls='/bin/ls'
 unalias ls
 eval `dircolors $HOME/.dircolors` # avoid ORPHAN check for symlinks.
-if [ $(command uname -s) == "Mac" ]; then
+if [ $(command uname -s) == "Mac" ] || [ $(command uname -s) == "Darwin" ]; then
     function ls() {
         /bin/ls -G $*
     }
@@ -230,7 +230,7 @@ function procstatus() {
 }
 
 # print progress of dd operations without halting.
-if [ $(command uname -s) == "Mac" ]; then
+if [ $(command uname -s) == "Mac" ] || [ $(command uname -s) == "Darwin" ]; then
     alias print_dd_progress='sudo /bin/kill -INFO $(pgrep ^dd$)' 
 elif [ $(command uname -s) == "Linux" ]; then
     alias print_dd_progress='/bin/kill -USR1 $(pgrep ^dd$)'
