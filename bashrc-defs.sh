@@ -66,6 +66,7 @@ alias tar='tar -k' # do not overwrite
 
 # git, also see home-config/bin
 alias gitsync='(git add . && git-commit-silent && echo "git pull & push" && git pull && git push)' # pull and send
+alias gitsync-nomsg='(git add . && git-commit-silent-nomsg && echo "git pull & push" && git pull && git push)' # pull and send
 alias gitdot='(git add . && git commit && git push)' # send only
 alias git-ls-other='git ls-files --other' # list ignored/unknown/new files
 alias git-ls-gitignore='git ls-files --ignored --exclude-standard' # list .gitignore files
@@ -78,6 +79,7 @@ alias git-undo-previous-commit-without-changing-anything-else='git reset --soft 
 alias git-undo-previous-commit-and-stage-file-without-changing-anything-else='git reset HEAD^' # the work directory is untouched: http://stackoverflow.com/questions/3528245/whats-the-difference-between-git-reset-mixed-soft-and-hard
 alias git-unstage-and-rm-from-index-keep-local-files-asis='git rm --cached -r' # git rm --cached -r <dirname>, git rm --cached <filename>. Good for files being tracked due to a previous commit, and if you now want to git-ignore them.
 alias git-commit-silent='git diff-index --quiet HEAD || git commit' # no error signal if there is nothing to commit
+alias git-commit-silent-nomsg='git diff-index --quiet HEAD || git commit -m NoMessage' # no error signal if there is nothing to commit
 alias git-log-stat='git log --stat'
 alias git-brach-ls-all='git branch --list -a' 
 
