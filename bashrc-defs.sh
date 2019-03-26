@@ -278,7 +278,7 @@ function findgrepi() {
 
 
 # ==============================
-# rsync
+# rsyncauto
 # ==============================
 
 # rsync <local> user@<host>:path
@@ -293,7 +293,7 @@ function findgrepi() {
 #   --checksum  To update a few blocks of already-downloaded files. Inefficient when downloading a completely
 #               new file. Can be used to verify equivalence. See:
 #               http://unix.stackexchange.com/questions/48298/can-rsync-resume-after-being-interrupted
-alias rsync-dry='rsync --progress --stats --dry-run -avzhe ssh'
+alias rsync-dry='rsync --progress --stats --dry-run -avzhe ssh' # for custom port: -avzhe "ssh -p PortNumber"
 alias rsync-run='rsync --progress  --stats -avzhe ssh'
 alias rsync-del-dry='rsync --progress --stats --dry-run --delete -avzhe ssh' # delete remote surplus files 
 alias rsync-del-run='rsync --progress --stats --delete -avzhe ssh'
