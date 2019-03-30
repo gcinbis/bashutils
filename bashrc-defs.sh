@@ -83,7 +83,9 @@ alias git-commit-silent-nomsg='git diff-index --quiet HEAD || git commit -m NoMe
 alias git-log-stat='git log --stat'
 alias git-brach-ls-all='git branch --list -a' 
 alias git-print-root-path='git rev-parse --show-toplevel'
-alias git-du='(echo "* Calculating approximate .git directory size (after housekeeping)" && git-print-root-path && command cd `git-print-root-path` && git gc && du -sh .git)'
+alias git-cd-root-path='command echo cd `git-print-root-path` && command cd `git-print-root-path`'
+alias git-pushd-root-path='command echo pushd `git-print-root-path` && command pushd `git-print-root-path`'
+alias git-du='(echo "* Calculating approximate .git directory size (after housekeeping)" && git-cd-root-path && git gc && du -sh .git)'
 
 # ==============================
 # GNU screen
