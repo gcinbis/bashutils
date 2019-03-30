@@ -82,6 +82,8 @@ alias git-commit-silent='git diff-index --quiet HEAD || git commit' # no error s
 alias git-commit-silent-nomsg='git diff-index --quiet HEAD || git commit -m NoMessage' # no error signal if there is nothing to commit
 alias git-log-stat='git log --stat'
 alias git-brach-ls-all='git branch --list -a' 
+alias git-print-root-path='git rev-parse --show-toplevel'
+alias git-du='(echo "* Calculating approximate .git directory size (after housekeeping)" && git-print-root-path && command cd `git-print-root-path` && git gc && du -sh .git)'
 
 # ==============================
 # GNU screen
