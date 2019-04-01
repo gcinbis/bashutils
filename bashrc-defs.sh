@@ -67,7 +67,9 @@ alias tar='tar -k' # do not overwrite
 # git, also see home-config/bin
 alias gitsync='(git add . && git-commit-silent && echo "git pull & push" && git pull && git push)' # pull and send
 alias gitsync-nomsg='(git add . && git-commit-silent-nomsg && echo "git pull & push" && git pull && git push)' # pull and send
+alias gitsyncroot-nomsg='(command cd `git-print-root-path` && git add . && git-commit-silent-nomsg && echo "git pull & push" && git pull && git push)' # pull and send
 alias gitdot='(git add . && git commit && git push)' # send only
+alias gitdotroot='(command cd `git-print-root-path` && git add . && git commit && git push)' # send only
 alias git-ls-other='git ls-files --other' # list ignored/unknown/new files
 alias git-ls-gitignore='git ls-files --ignored --exclude-standard' # list .gitignore files
 alias git-revert-file='git checkout --'
