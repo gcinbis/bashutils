@@ -352,4 +352,21 @@ alias sshprivate2public='ssh-keygen -y -e -f' # sshprivate2public <id_rsa_file>
 #alias ssho='/usr/bin/ssh';
 #alias sshx='ssh -c arcfour,blowfish-cbc -XC'
 
+# ==============================
+# ENCFS
+# ==============================
+
+function lsencfs() {
+    if [ $(command uname -s) == "Mac" ] || [ $(command uname -s) == "Darwin" ]; then
+        command mount | grep -i encfs
+    elif [ $(command uname -s) == "Linux" ]; then
+        # mount | grep -i encfs
+        # findmnt | grep encfs
+        # df -h --output=source,target | grep encfs
+        cat /proc/mounts | grep encfs
+    fi
+}
+
+
+
 
