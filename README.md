@@ -33,6 +33,7 @@ Gokberk Cinbis, 2018.
 * `git-writehash`                               Write git hash into a file.
 * `git-checkhash`                               Check whether the current git hash to make sure the right code-base is being used for evaluating a pre-trained model.
 * `git-find-deleted-file`                       A git shortcut.
+* `git-remember-passwords`                      Wrapper to set-up git password cache easily.
 
 ## System utilities
 
