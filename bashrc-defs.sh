@@ -34,12 +34,18 @@ unalias ls
 eval `dircolors $HOME/.dircolors` # avoid ORPHAN check for symlinks.
 if [ $(command uname -s) == "Mac" ] || [ $(command uname -s) == "Darwin" ]; then
     function ls() {
-        /bin/ls -G $*
+        # see notes for the linux case below
+        # old: /bin/ls -G $*
+        local args=("$@")  # preserves ".." groups
+        eval /bin/ls -G "${args[@]}"
     }
 else
+    # Test with something like ls file1withspaces file2withspaces
     function ls() {
-        /bin/ls --color=always -C --width=$COLUMNS $* | less -RFX # stalls on nfs failure due to color option.
-        # /bin/ls --color=never -C --width=$COLUMNS $* | less -RFX # avoid color due to nfs failures
+        #not good with spaces: /bin/ls --color=always -C --width=$COLUMNS $* | less -RFX # stalls on nfs failure due to color option.
+        #not good with multiple files: /bin/ls --color=always -C --width=$COLUMNS "$*" | less -RFX # stalls on nfs failure due to color option.
+        local args=("$@")  # preserves ".." groups
+        /bin/ls --color=always -C --width=$COLUMNS "${args[@]}" | less -RFX # stalls on nfs failure due to color option.
     }
 fi
 
@@ -66,8 +72,8 @@ alias tar='tar -k' # do not overwrite
 
 # git, also see home-config/bin
 alias gitsync='(git add . && git-commit-silent && echo "git pull & push" && git pull && git push)' # pull and send
-alias gitsync-nomsg='(git add . && git-commit-silent-nomsg && echo "git pull & push" && git pull && git push)' # pull and send
-alias gitsyncroot-nomsg='(command cd `git-print-root-path` && git add . && git-commit-silent-nomsg && echo "git pull & push" && git pull && git push)' # pull and send
+alias gitsync-nomsg='(git add . && git-commit-silent-nomsg && echo "git-pull-nomsg & git push" && git-pull-nomsg && git push)' # pull and send
+alias gitsyncroot-nomsg='(command cd `git-print-root-path` && gitsync-nomsg)' 
 alias gitdot='(git add . && git commit && git push)' # send only
 alias gitdotroot='(command cd `git-print-root-path` && git add . && git commit && git push)' # send only
 alias git-ls-other='git ls-files --other' # list ignored/unknown/new files
@@ -82,6 +88,7 @@ alias git-undo-previous-commit-and-stage-file-without-changing-anything-else='gi
 alias git-unstage-and-rm-from-index-keep-local-files-asis='git rm --cached -r' # git rm --cached -r <dirname>, git rm --cached <filename>. Good for files being tracked due to a previous commit, and if you now want to git-ignore them.
 alias git-commit-silent='git diff-index --quiet HEAD || git commit' # no error signal if there is nothing to commit
 alias git-commit-silent-nomsg='git diff-index --quiet HEAD || git commit -m NoMessage' # no error signal if there is nothing to commit
+alias git-pull-nomsg='git pull --no-edit'
 alias git-log-stat='git log --stat'
 alias git-brach-ls-all='git branch --list -a' 
 alias git-print-root-path='git rev-parse --show-toplevel'
