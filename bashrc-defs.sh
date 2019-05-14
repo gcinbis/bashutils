@@ -374,6 +374,36 @@ function lsencfs() {
     fi
 }
 
+# ==============================
+# anaconda python
+# ==============================
+
+
+function conda-custom-activate() {
+    # adapted from the lines added by anaconda installer into .bashrc
+    if [ $# -ne 1 ]; then
+        echo Incorret number of arguments. Pass only the path to anaconda root.
+        echo EXAMPLE: conda-custom-activate $HOME/anaconda3
+        return;
+    fi
+
+    # >>> conda initialize >>>
+    # !! Contents within this block are managed by 'conda init' !!
+    __conda_setup="$("$1/bin/conda" 'shell.bash' 'hook' 2> /dev/null)"
+    if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+    else
+    if [ -f "$1/etc/profile.d/conda.sh" ]; then
+        . "$1/etc/profile.d/conda.sh"
+    else
+        export PATH="$1/bin:$PATH"
+    fi
+    fi
+    unset __conda_setup
+    # <<< conda initialize <<<
+}
+
+
 
 
 
