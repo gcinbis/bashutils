@@ -14,37 +14,48 @@ function print_settings_and_exit {
     exit 0
 }
 
+function get_cur_temp_setting {
+    local x=$(gsettings get org.gnome.settings-daemon.plugins.color night-light-temperature)
+    local x=${x/uint32 /}
+    echo $x
+}
+
+function increment_by {
+    local old=$(get_cur_temp_setting)
+    local new1=$(expr $old + $1)
+    gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature "$new1"
+    local new2=$(get_cur_temp_setting)
+    echo "Changed the color temperature from $old K to $new2 K"
+}
+
 function print_help_and_exit() {
+    echo 'Utility to alter screen color temperature settings easily in GNOME.'
+    echo ''
     echo 'USAGE'
     echo 'gnome-color-temperature info'
     echo '  Print current settings.'   
     echo ''
-    echo 'gnome-color-temperature editor'
-    echo '  Open settings in dconf-editor.'   
+    echo 'gnome-color-temperature +'
+    echo '  Increase color temperature by 250 K. (cooler)'   
+    echo ''
+    echo 'gnome-color-temperature -'
+    echo '  Decrease color temperature by 250 K. (warmer)'   
     echo ''
     echo 'gnome-color-temperature custom <value>'
     echo '  Set color temperature to <value>.'   
     echo ''
-    echo 'gnome-color-temperature cool'
-    echo '  Set color temperature to 6500.'   
+    echo 'gnome-color-temperature custom <value>'
+    echo '  Set color temperature to <value>.'   
     echo ''
-    echo 'gnome-color-temperature balanced-cooler'
-    echo '  Set color temperature to 6000.'   
-    echo ''
-    echo 'gnome-color-temperature balanced-cool'
-    echo '  Set color temperature to 5750.'   
-    echo ''
-    echo 'gnome-color-temperature balanced'
-    echo '  Set color temperature to 5500.'   
-    echo ''
-    echo 'gnome-color-temperature balanced-warm'
-    echo '  Set color temperature to 5000.'   
-    echo ''
-    echo 'gnome-color-temperature balanced-warmer'
-    echo '  Set color temperature to 4500.'   
-    echo ''
-    echo 'gnome-color-temperature warm'
-    echo '  Set color temperature to 4000.'   
+    echo 'gnome-color-temperature <preset>'
+    echo '  Set color temperature to a predefined value, using the following table.'   
+    echo '     cool: 6500'
+    echo '     balanced-cooler: 6000'
+    echo '     balanced-cool: 5750'
+    echo '     balanced: 5500'
+    echo '     balanced-warm: 5000'
+    echo '     balanced-warmer: 4500'
+    echo '     warm: 4000'
     echo ''
     echo 'gnome-color-temperature all-day'
     echo '  Enable the tool and set all day active.'   
@@ -54,6 +65,9 @@ function print_help_and_exit() {
     echo ''
     echo 'gnome-color-temperature disable'
     echo '  Disable.'   
+    echo ''
+    echo 'gnome-color-temperature editor'
+    echo '  Open settings in dconf-editor.'   
     exit 1
 }
 
@@ -69,6 +83,16 @@ fi
 
 if [ "$opt1" == "editor" ]; then
     dconf-editor org.gnome.settings-daemon.plugins.color
+    exit 0
+fi
+
+if [ "$opt1" == "+" ]; then
+    increment_by 250
+    exit 0
+fi
+
+if [ "$opt1" == "-" ]; then
+    increment_by -250
     exit 0
 fi
 
