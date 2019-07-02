@@ -40,7 +40,7 @@ then
     exit
 fi
 
-tmpDir=`mktemp -d -t tmp.pdf_add_header`
+tmpDir=`mktemp -d -t tmp.pdf_add_headerXXXXX`
 if [ -f $tmpDir ]
 then
     echo "ERROR, TEMP DIRETORY ALREADY EXISTS"
