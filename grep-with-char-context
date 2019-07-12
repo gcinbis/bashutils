@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-if [ $# -le 2 ]; then
+if [ $# -le 1 ]; then
     echo "grep-with-char-context <numchars-before/after> <pattern> <filename1> <filename2> <...>"
     echo "Print results with character context for a specified number of characters."
     exit 1
@@ -16,5 +16,6 @@ do
     cmd="$cmd \"${!i}\"" # add \"...\" to support filenames with spaces
 done    
 
-echo $cmd
+#echo $cmd
 eval $cmd # use eval to parse quotes properly (see more here: https://stackoverflow.com/questions/411495/build-argument-lists-containing-whitespace)
+
