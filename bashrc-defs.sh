@@ -284,12 +284,20 @@ function findgrepc() {
 
 function findgrepi() {
     if [ $# -ne 1 ]; then
+        echo "findgrep <keyword>"
         echo "Search all files recursively, list files matching the regexp keywork"
-        echo "findgrep keyword"
         return;
     fi
     find . -type f -exec grep -il "$1" {} \;
 }
+
+# ==============================
+# grep
+# ==============================
+
+alias grep='grep --color=auto'
+
+
 
 
 # ==============================
