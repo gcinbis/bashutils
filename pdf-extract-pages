@@ -1,0 +1,32 @@
+#!/bin/bash
+set -e
+ 
+function pdfextractpages() {
+    local narg=$#
+    local file="$1"
+
+    if [ $narg -ne 4 ]
+    then
+        echo "USAGE: pdf-extract-pages <input_pdf> <output_pdf> <first page> <last page>"
+        echo ""
+        echo "Uses base-1 indexing. "
+        return 1
+    fi
+
+    # avoid overwriting by mistake
+    if [ -f "$2" ]
+    then
+        echo "Output: $out1 already exists. First delete existing output file."
+        return 1
+    fi
+
+
+    gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER \
+        -dFirstPage="$3" -dLastPage="$4" \
+        -sOutputFile="$2" "$1"
+}
+
+# ok with multiple quoted arguments
+pdfextractpages "$@"
+
+
