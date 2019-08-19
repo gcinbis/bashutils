@@ -72,8 +72,8 @@ alias tar='tar -k' # do not overwrite
 
 # git, also see home-config/bin
 # add the prefix __ to keep bash autocomplete easy-to-use.
-alias __gitsync='(git add . && git-commit-silent && echo "git pull & push" && git pull && git push)' # pull and send
-alias __gitsync-nomsg='(git add . && git-commit-silent-nomsg && echo "git-pull-nomsg & git push" && git-pull-nomsg && git push)' # pull and send
+alias __gitsync='(git reset && git add . && git-commit-silent && echo "git pull & push" && git pull && git push)' # pull and send
+alias __gitsync-nomsg='(git reset && git add . && git-commit-silent-nomsg && echo "git-pull-nomsg & git push" && git-pull-nomsg && git push)' # pull and send
 alias gitsyncroot='(command cd `git-print-root-path` && __gitsync)' 
 alias gitsyncroot-nomsg='(command cd `git-print-root-path` && __gitsync-nomsg)' 
 alias gitdot='(git add . && git commit && git push)' # send only
