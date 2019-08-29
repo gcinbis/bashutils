@@ -385,9 +385,10 @@ function lsencfs() {
 }
 
 # ==============================
-# anaconda python
+# python, anaconda
 # ==============================
 
+alias jupyter2py='jupyter nbconvert --to script' # jupyter2py <file.ipynb>
 
 function conda-custom-activate() {
     # adapted from the lines added by anaconda installer into .bashrc
