@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+#
+# Author: Gokberk Cinbis
+# November 2019
+
+import sys
+
+DEL_DEFAULTS = ['abstract','keywords','file','note','url','urldate','isbn','doi','publisher']
+
+def help_and_exit():
+    print('bibtool [?field1] ... [?fieldn] <file>')
+    print('Remove unwanted fields from a bibtex file.')
+    print('This script will create the backup <file>.bak (any existing file will be overwritten) and alter the original file using bibtool.')
+    print('Each [?fieldj] is optional. ? has to be - (delete) or + (keep). "field" refers to a bibtex field.')
+    print('By default, only the following fields are deleted:')
+    for x in set(DEL_DEFAULTS):
+        print(' - ' + x)
+    print('To keep a field "f" that is deleted by default, pass "+f". e.g., bibclean +abstract <file>')
+    print('If a field is passed multiple times in the options, the final one determines the actions.')
+    print('')
+    exit(1)
+
+def parse_args(argv):
+    if len(argv) < 2:
+        help_and_exit()
+    path=argv[-1] # file
+    del_flds = set(DEL_DEFAULTS)
+    for opt in argv[1:-1]:
+        f = opt[1:]
+        if opt[0] == '-':
+            del_flds.add(f) # set operation
+        elif opt[0] == '+':
+            if f in del_flds:
+                del_flds.remove(f) # set operation
+        else:
+            print('Unrecognized option: ' + opt)
+            exit(2)
+    print('These fields will be deleted: ',del_flds)
+    if len(del_flds)==0:
+        print('Nothing to do, exiting.')
+        exit(0)
+    return path,del_flds
+
+path,del_flds = parse_args(sys.argv)
+
+# first create the backup
+from shutil import copyfile
+copyfile(path, path + '.bak')
+
+# Example: bibtool --delete.field='{ abstract }' --delete.field='{ keywords }' meta-learning.bib
+cmd = 'bibtool'
+for f in del_flds:
+    cmd += " --delete.field='{ " + f + " }'"
+cmd += ' "' + path + '.bak" -o "' + path + '"'
+#print(cmd)
+
+import os
+os.system(cmd)
+
+print('Done. Check the output file carefully.')
