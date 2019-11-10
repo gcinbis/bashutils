@@ -8,14 +8,14 @@ import sys
 DEL_DEFAULTS = ['abstract','keywords','file','note','url','urldate','isbn','doi','publisher']
 
 def help_and_exit():
-    print('bibtool [?field1] ... [?fieldn] <file>')
+    print('bibrmfield [?field1] ... [?fieldn] <file>')
     print('Remove unwanted fields from a bibtex file.')
     print('This script will create the backup <file>.bak (any existing file will be overwritten) and alter the original file using bibtool.')
     print('Each [?fieldj] is optional. ? has to be - (delete) or + (keep). "field" refers to a bibtex field.')
     print('By default, only the following fields are deleted:')
     for x in set(DEL_DEFAULTS):
         print(' - ' + x)
-    print('To keep a field "f" that is deleted by default, pass "+f". e.g., bibclean +abstract <file>')
+    print('To keep a field "f" that is deleted by default, pass "+f". e.g., bibrmfield +abstract <file>')
     print('If a field is passed multiple times in the options, the final one determines the actions.')
     print('')
     exit(1)
