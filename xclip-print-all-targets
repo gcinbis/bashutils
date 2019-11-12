@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for x in $(xclip -o -t TARGETS); do
+    echo "----- $x ------"
+    xclip -o -t "$x"
+done
+
