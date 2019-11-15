@@ -5,7 +5,7 @@
 
 import sys
 
-DEL_DEFAULTS = ['abstract','keywords','file','note','url','urldate','isbn','doi','publisher']
+DEL_DEFAULTS = ['abstract','keywords','file','note','url','urldate','isbn','doi','publisher','annote']
 
 def help_and_exit():
     print('bibrmfield [?field1] ... [?fieldn] <file>')
@@ -17,6 +17,8 @@ def help_and_exit():
         print(' - ' + x)
     print('To keep a field "f" that is deleted by default, pass "+f". e.g., bibrmfield +abstract <file>')
     print('If a field is passed multiple times in the options, the final one determines the actions.')
+    print('')
+    print('If <file> is --, stdin is used.')
     print('')
     exit(1)
 
@@ -44,17 +46,26 @@ def parse_args(argv):
 path,del_flds = parse_args(sys.argv)
 
 # first create the backup
-from shutil import copyfile
-copyfile(path, path + '.bak')
+if path != '--':
+    from shutil import copyfile
+    copyfile(path, path + '.bak')
+    stdin=False
+else:
+    stdin=True
 
 # Example: bibtool --delete.field='{ abstract }' --delete.field='{ keywords }' meta-learning.bib
 cmd = 'bibtool'
 for f in del_flds:
     cmd += " --delete.field='{ " + f + " }'"
-cmd += ' "' + path + '.bak" -o "' + path + '"'
+if not stdin:
+    cmd += ' "' + path + '.bak" -o "' + path + '"'
 #print(cmd)
 
-import os
-os.system(cmd)
+import subprocess
+output = subprocess.check_output(cmd,shell=True)
+if stdin:
+    print('-------')
+    print(output.decode("utf-8"))
+else:
+    print('Done. Check the output file carefully.')
 
-print('Done. Check the output file carefully.')
