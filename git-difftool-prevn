@@ -8,7 +8,7 @@ if [ $# -le 0 ]; then
 fi
 args=("$@")  # preserves ".." groups
 narg=${#args[@]}
-echo git difftool "HEAD@{$1}" ${args[@]:1:$narg}
+git difftool "HEAD@{$1}" ${args[@]:1:$narg}
 
 
 
