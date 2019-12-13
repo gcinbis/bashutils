@@ -83,6 +83,7 @@ alias git-ls-gitignore='git ls-files --ignored --exclude-standard' # list .gitig
 alias git-revert-file='git checkout --'
 alias git-config-filemodeoff='(git config --global core.filemode false && git config core.filemode false)'
 alias git-config-vimdiff='(git config --global diff.tool vimdiff && git config --global merge.tool vimdiff && git config --global difftool.prompt false)'
+alias git-config-mergetool='(git config merge.tool vimdiff && git config merge.conflictstyle diff3 && git config mergetool.prompt false)'
 alias git-url='git remote -v'
 alias git-difftool-prev='git difftool HEAD@{1}'
 alias git-undo-previous-commit-without-changing-anything-else='git reset --soft HEAD^' # this remembers "git add" and similar commands. The working directory is untouched: http://stackoverflow.com/questions/2845731/how-to-uncommit-my-last-commit-in-git
