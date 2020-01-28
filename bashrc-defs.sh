@@ -415,7 +415,6 @@ function conda-custom-activate() {
     # <<< conda initialize <<<
 }
 
-
-
+# better debugging: install pdbpp
 
 
