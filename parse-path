@@ -1,0 +1,81 @@
+#!/bin/bash
+set -e
+
+# Gokberk Cinbis, February 2020
+
+help_mode=0
+
+function print_example()
+{
+    local p_="$1"
+    echo "<path> = $p_"
+    for opt_ in -fname -fname-noext -ext -path-noext -dir 
+    do
+        echo "  $opt_: `func-split-filename $opt_ $p_`"
+    done
+}
+
+function func-split-filename()
+{
+    local narg=$#
+    local opt="$1"
+    local path="$2"
+
+    if [ $narg -ne 2 ]
+    then
+        if [ $helpmode = 1 ]; then
+            exit 3 # avoid recursion
+        fi
+        helpmode=1
+        echo "USAGE: parse-path <opt> <path>"
+        echo "Returns basepath, filename without extension, extension, etc. depending on <opt> for the file <path>"
+        echo "Input <path> is assumed to be a file path. Directory path inputs are not supported."
+        echo ""
+        echo "<opt> can be one of the following:"
+        echo "  -fname          Print filename without directory but with extension."
+        echo "  -fname-noext    Print filename without extension and without directory path."
+        echo "  -ext            Print extension. If file does not have an extension returns empty, otherwise, returns '.ext' (with dot prefix)."
+        echo "  -path-noext     Print file path without extension but with directory path."
+        echo "  -dir            Print directory path only. If non-empty, result is provided with the / suffix."
+        echo ""
+        echo "NOTES"
+        echo "* In a file with multiple dots, the very last one is considered as the extension."
+        echo "* Existance of the file or whether the given path is a file path or not is not checked."
+        echo "* UTF-8 filenames requires further testing."
+        echo
+        echo "EXAMPLES"
+        print_example "f.ext"
+        print_example "/a.b/x"
+        print_example "/a.b/x.y.z"
+        print_example "utf-8-test/şu-gülün/adı/değişse/bilé/jéan.txt"
+        exit 1
+    fi
+
+    local fname=$(basename "$path") # first remove the preceding path
+
+    # https://unix.stackexchange.com/questions/236029/bash-how-do-you-return-file-extensions?rq=1
+    case ${fname##*/} in
+        (?*.*) ext="."${fname##*.};; # add . prefix
+        (*) ext=;; # no extension, therefore empty
+    esac
+    local fname_noext=$(basename "$fname" "$ext") # first remove the preceding path
+
+    # Hard to handle with edge cases: local dir=$(dirname "$fname") 
+    # dirname returns "." for both "./a" and "a"!
+    fnamelen=${#fname}
+    local dir=${path::-$fnamelen} # naturally contains / unless empty
+
+    case ${opt} in
+        ("-fname") echo "$fname";;
+        ("-fname-noext") echo "$fname_noext";;
+        ("-ext") echo "$ext";;
+        ("-path-noext") echo "$dir$fname_noext";;
+        ("-dir") echo "$dir";;
+        (*) exit 2;; # better not print anything
+    esac
+
+}
+
+# ok with multiple quoted arguments
+func-split-filename "$@"
+
