@@ -43,6 +43,7 @@ Gokberk Cinbis, 2018.
 * `killapp`                                     Send KILL signal to user processes matching to a regular expression.
 * `gnome-remotedesktop-toggleprompt`            Enable/disable Gnome Shell remote desktop prompt for security purposes.
 * `gnome-color-temperature`                     Shortcuts to alter Gnome color temperature settings.
+* `parse-path`                                  A well-designed path parsing tool.
 
 ## File conversion
 
