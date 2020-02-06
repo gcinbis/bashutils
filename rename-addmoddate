@@ -10,8 +10,7 @@ function func-addname-moddate() {
     if [ $narg -eq 0 ]
     then
         echo "USAGE: addname-moddate file1 file2 ... fileN'"
-        echo "Renames each file by adding modification date to each filename"
-        echo " as a suffix before its last extension (if any)."
+        echo "Renames each file by adding modification date to each filename (renames filename.ext to filename_<date>.<ext>)"
         echo ""
         echo "Reports errors for already existing target filenames and continues with the remaining ones."
         return 1
@@ -21,21 +20,11 @@ function func-addname-moddate() {
     do
         # separate input name and extension
         local f="${!i}"
-
- 
-        #local inp_nopath=$(basename "$file") # first remove the preceding path
-        f_noext="${f%.*}" 
-        f_ext="${f##*.}" 
-        if [ "$f_ext" = "$f_noext" ]; then 
-            f_ext=""
-        else
-            f_ext=".$f_ext"
-        fi
-        echo $f_noext
-        echo $f_ext
+        p0=$(parse-path -path-noext "$f")
+        ext=$(parse-path -ext "$f")
 
         # partly from https://unix.stackexchange.com/questions/353083/add-modification-time-to-the-filename
-        out="${f_noext}_$(date -r "$f" +'%Y-%m-%d_%H-%M')${f_ext}"
+        out="${p0}_$(date -r "$f" +'%Y-%m-%d_%H-%M')${ext}"
 
         if [ -e "$out" ]; then 
             print "ERROR: Already exists: $out$"
@@ -44,7 +33,6 @@ function func-addname-moddate() {
             mv -n "$f" "$out"
         fi
     done
-
 }
 
 # ok with multiple quoted arguments
