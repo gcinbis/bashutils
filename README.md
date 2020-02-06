@@ -44,7 +44,7 @@ Gokberk Cinbis, 2018.
 * `gnome-remotedesktop-toggleprompt`            Enable/disable Gnome Shell remote desktop prompt for security purposes.
 * `gnome-color-temperature`                     Shortcuts to alter Gnome color temperature settings.
 * `parse-path`                                  A well-designed path parsing tool.
-* `func-addname-moddate`                        Add modification date to the filename.
+* `mv-addmoddate`                               Add modification date to filename and move to a target directory.
 
 ## File conversion
 

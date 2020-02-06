@@ -1,0 +1,67 @@
+#!/bin/bash
+set -e
+
+# convert a pdf into grayscale
+function func-mv-addmoddate() {
+    # no! local args=($*) -- does not handle quotes.
+    # no! local narg=${#args[@]}
+    local narg=$#
+
+    if [ $narg -lt 2 ]
+    then
+        echo "USAGE: addname-moddate [<opt>] <file1> ... <fileN> <outdir>'"
+        echo "Renames each file by adding modification date to each filename (renames filename.ext to filename_<date>.<ext>)"
+        echo "and moves to the target directory <outdir>."
+        echo ""
+        echo "<opt>  (Optional) options:"
+        echo " -dryrun  Do not move any file, just print mv commands"
+        echo ""
+        echo "Reports errors for already existing target filenames and continues with the remaining ones."
+        exit 1
+    fi
+
+    outdir="${@: -1}"
+    if [ -d "$outdir" ]; then
+        pass=1
+    else
+        echo "Target directory path is invalid: $outdir"
+        exit 2
+    fi
+
+    if [ "$1" = "-dryrun" ]; then
+        dryrun=1
+        i0=2
+    else
+        dryrun=0
+        i0=1
+    fi
+
+    for (( i = i0 ; i <= ($narg-1); i++ ))
+    do
+        # separate input name and extension
+        local f="${!i}"
+        p0=$(parse-path -path-noext "$f")
+        ext=$(parse-path -ext "$f")
+
+        # partly from https://unix.stackexchange.com/questions/353083/add-modification-time-to-the-filename
+        out="${outdir}/${p0}_$(date -r "$f" +'%Y-%m-%d_%H-%M')${ext}"
+
+        if [ -e "$out" ]; then 
+            print "ERROR: Already exists: $out$"
+        else
+            if [ $dryrun = 1 ]; then 
+                echo mv -n "$f" "$out"
+            else
+                echo "$f -> $out"
+                mv -n "$f" "$out"
+            fi
+        fi
+    done
+
+    exit 0
+}
+
+# ok with multiple quoted arguments
+func-mv-addmoddate "$@"
+
+
