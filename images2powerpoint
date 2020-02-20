@@ -19,7 +19,7 @@ def help_and_exit():
     print('Makes each slide covered by the corresponding image.')
     print('For defining the aspect ratio of the presentation, uses the very first image.')
     print('')
-    print('Note: to convert pdf to images, one can use: pdftoppm input.pdf outdir/prefix -png')
+    print('Note: to convert pdf to images, one can use: pdftoppm -r 300 input.pdf outdir/prefix -png')
     print('')
     print('INSTALL')
     print('pip3 install python-pptx')
