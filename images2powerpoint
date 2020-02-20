@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+#
+# Author: Gokberk Cinbis
+# February 2020
+#
+# Resources:
+# * https://stackoverflow.com/questions/46184239/extract-a-page-from-a-pdf-as-a-jpeg
+# * https://pythonprogramming.altervista.org/inserting-an-image-in-powerpoint-with-python
+# * https://gist.github.com/glass5er/748cda36befe17fd1cb0
+
+from pptx import Presentation
+import os
+import sys
+from PIL import Image
+ 
+def help_and_exit():
+    print('images2powerpoint <image1> ... <imageN> <output.pptx>')
+    print('Convert a series of images to powerpoint by taking image snapshots')
+    print('Note: to convert pdf to images, one can use: pdftoppm input.pdf outdir/prefix -png')
+    print('')
+    print('INSTALL')
+    print('pip3 install python-pptx')
+    exit(1)
+
+def parse_args(argv):
+    opts = {}
+    if len(argv) < 2:
+        help_and_exit()
+    opts['input'] = argv[1:(len(argv)-1)]
+    opts['output'] = argv[-1]
+    return opts
+
+def init_pptx(opts):
+    prs = Presentation()
+    # default slide width
+    #prs.slide_width = 9144000
+    # slide height @ 4:3
+    #prs.slide_height = 6858000
+    # slide height @ 16:9
+    prs.slide_height = 5143500
+    return prs
+
+# -- main code --
+opts = parse_args(sys.argv)
+prs = init_pptx(opts)
+
+
+pic_left  = int(prs.slide_width * 0.15)
+pic_top   = int(prs.slide_height)
+pic_width = int(prs.slide_width * 0.7)
+for g in opts['input']:
+    slide = prs.slides.add_slide(prs.slide_layouts[6]) # blank layout
+
+    '''
+    example to add text
+    tb = slide.shapes.add_textbox(0, 0, prs.slide_width, pic_top / 2)
+    p = tb.textframe.add_paragraph()
+    p.text = g
+    p.font.size = pptx.util.Pt(14)
+    '''
+
+    img = Image.open(g)
+    pic_height = int(pic_width * img.size[0] / img.size[1])
+    #pic   = slide.shapes.add_picture(g, pic_left, pic_top)
+    pic   = slide.shapes.add_picture(g, pic_left, pic_top, pic_width, pic_height)
+
+prs.save(opts['output'])
+print('Done: ' + opts['output'])
+
+
