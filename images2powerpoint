@@ -15,7 +15,10 @@ from PIL import Image
  
 def help_and_exit():
     print('images2powerpoint <image1> ... <imageN> <output.pptx>')
-    print('Convert a series of images to powerpoint by taking image snapshots')
+    print('Convert a series of images to powerpoint by taking image snapshots.')
+    print('Makes each slide covered by the corresponding image.')
+    print('For defining the aspect ratio of the presentation, uses the very first image.')
+    print('')
     print('Note: to convert pdf to images, one can use: pdftoppm input.pdf outdir/prefix -png')
     print('')
     print('INSTALL')
@@ -30,6 +33,13 @@ def parse_args(argv):
     opts['output'] = argv[-1]
     return opts
 
+def get_img_size(path):
+    img = Image.open(path)
+    height = img.size[1]
+    width = img.size[0]
+    # print('imh: ' + str(height), 'imw: ' + str(width)) --> OK.
+    return height, width
+
 def init_pptx(opts):
     prs = Presentation()
     # default slide width
@@ -37,7 +47,9 @@ def init_pptx(opts):
     # slide height @ 4:3
     #prs.slide_height = 6858000
     # slide height @ 16:9
-    prs.slide_height = 5143500
+    prs.slide_height = 5143500 # English Metric Units (EMU)
+    imh, imw = get_img_size(opts['input'][0])
+    prs.slide_width = int(prs.slide_height / imh * imw)
     return prs
 
 # -- main code --
@@ -45,9 +57,9 @@ opts = parse_args(sys.argv)
 prs = init_pptx(opts)
 
 
-pic_left  = int(prs.slide_width * 0.15)
-pic_top   = int(prs.slide_height)
-pic_width = int(prs.slide_width * 0.7)
+pic_left  = int(0) # prs.slide_width * 0.15)
+pic_top   = int(0) # prs.slide_height * 0.1
+pic_width = int(prs.slide_width) # * 0.7
 for g in opts['input']:
     slide = prs.slides.add_slide(prs.slide_layouts[6]) # blank layout
 
@@ -58,9 +70,8 @@ for g in opts['input']:
     p.text = g
     p.font.size = pptx.util.Pt(14)
     '''
-
-    img = Image.open(g)
-    pic_height = int(pic_width * img.size[0] / img.size[1])
+    imh, imw = get_img_size(g)
+    pic_height = int(pic_width * imh / imw)
     #pic   = slide.shapes.add_picture(g, pic_left, pic_top)
     pic   = slide.shapes.add_picture(g, pic_left, pic_top, pic_width, pic_height)
 
