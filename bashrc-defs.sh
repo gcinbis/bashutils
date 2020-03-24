@@ -229,6 +229,7 @@ alias numcpu='cat /proc/cpuinfo | grep proc | wc -l'
 alias readrc='source ~/.bashrc'
 alias uname='uname -a'
 alias free='free -m'
+alias lsdisplays="w -oush | grep -Eo ' :[0-9]+' | uniq | cut -d \  -f 2" # list all DISPLAY options. (https://unix.stackexchange.com/questions/17255/is-there-a-command-to-list-all-open-displays-on-a-machine)
 
 # disk usage
 alias df='df -h'
