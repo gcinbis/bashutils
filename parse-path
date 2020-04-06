@@ -2,6 +2,7 @@
 set -e
 
 # Gokberk Cinbis, February 2020
+# todo: add unit tests
 
 help_mode=0
 
@@ -63,7 +64,15 @@ function func-split-filename()
     # Hard to handle with edge cases: local dir=$(dirname "$fname") 
     # dirname returns "." for both "./a" and "a"!
     fnamelen=${#fname}
-    local dir=${path::-$fnamelen} # naturally contains / unless empty
+    
+    # remove the last fnamelen characters. 
+    # works only in bash 4.2+ local dir=${path::-$fnamelen} 
+    dir=${path}
+    for ((remove_index=0;remove_index<${fnamelen};remove_index++))
+    do
+        dir=${dir%?}
+    done
+    # assert: dir naturally contains / unless empty
 
     case ${opt} in
         ("-fname") echo "$fname";;
