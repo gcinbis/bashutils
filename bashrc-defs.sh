@@ -108,8 +108,21 @@ alias newscreen='/usr/bin/screen -S';
 alias screen='/usr/bin/screen -dr';
 
 alias txnew='tmux new -s' # followed by new session name
-alias tx='tmux attach -t' # followed by existing session name
-alias txls='tmux ls' # list
+function tx() {
+    if [[ $# = 0 ]] 
+    then
+        tmux ls
+        echo "To attach: tx <session-name>"
+    else
+        txmus attach -t "$1"
+    fi
+}
+
+function txcolours() {
+    # https://superuser.com/questions/285381/how-does-the-tmux-color-palette-work/285400
+    # for i in {0..255}; do printf "\x1b[38;5;${i}mcolour${i}\x1b[0m\n"; done
+    for i in {0..255}; do printf "\x1b[38;5;${i}mcolor%-5i\x1b[0m" $i ; if ! (( ($i + 1 ) % 8 )); then echo ; fi ; done
+}
 
 # ==============================
 # ctags
