@@ -114,7 +114,7 @@ function tx() {
         tmux ls
         echo "To attach: tx <session-name>"
     else
-        txmux attach -t "$1"
+        tmux attach -t "$1"
     fi
 }
 
