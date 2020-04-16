@@ -100,12 +100,16 @@ alias git-pushd-root-path='command echo pushd `git-print-root-path` && command p
 alias git-du='(echo "* Calculating approximate .git directory size (after housekeeping)" && git-cd-root-path && git gc && du -sh .git)'
 
 # ==============================
-# GNU screen
+# GNU screen, tmux
 # ==============================
 
 alias newscreen='/usr/bin/screen -S';
-alias newscreen2='/usr/bin/screen -c $HOME/.screenrc2 -S';  # create a .screenrc with just a different "escape" (ctrl-A) to use "screen inside screen" easily.
+#alias newscreen2='/usr/bin/screen -c $HOME/.screenrc2 -S';  # create a .screenrc with just a different "escape" (ctrl-A) to use "screen inside screen" easily.
 alias screen='/usr/bin/screen -dr';
+
+alias txnew='tmux new -s' # followed by new session name
+alias tx='tmux attach -t' # followed by existing session name
+alias txls='tmux ls' # list
 
 # ==============================
 # ctags
