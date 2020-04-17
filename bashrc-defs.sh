@@ -72,6 +72,7 @@ alias tar='tar -k' # do not overwrite
 
 # git, also see home-config/bin
 # add the prefix __ to keep bash autocomplete easy-to-use.
+# In case of cryptic 'git pull' problems, it is a good idea to try 'git fetch' first.
 alias __gitsync='(git reset && git add . && git-commit-silent && echo "git pull & push" && git pull && git push)' # pull and send
 alias __gitsync-nomsg='(git reset && git add . && git-commit-silent-nomsg && echo "git-pull-nomsg & git push" && git-pull-nomsg && git push)' # pull and send
 alias gitsyncroot='(command cd `git-print-root-path` && __gitsync)' 
