@@ -45,6 +45,7 @@ Gokberk Cinbis, 2018.
 * `gnome-color-temperature`                     Shortcuts to alter Gnome color temperature settings.
 * `parse-path`                                  A well-designed path parsing tool.
 * `mv-addmoddate`                               Add modification date to filename and move to a target directory.
+* `tmux-parallel-exec`                          Execute several commands in parallel within tmux windows.
 
 ## File conversion
 
@@ -53,6 +54,7 @@ Gokberk Cinbis, 2018.
 * `video2ipad`                                  Convert video file to iPad-compatible format (not perfect, though).
 * `video2tv`                                    Convert image file into a mp4 file readable by most TVs.
 * `img2canon`                                   Convert image file into a format readable by Canon printers.
+* `images2powerpoint`                           Convert a series of images to a powerpoint presentation.
 
 ## Zotero-related tools
 

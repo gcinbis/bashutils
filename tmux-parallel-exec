@@ -1,0 +1,67 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, May 2020
+
+set -e
+
+function __uniqueid__()
+{
+    # date, time, process info
+    local d=`date +%Y%m%d`
+    local t=`date +%H-%M-%S` # hour.minute.seconds (dots are useful for time, otherwise very unreadible)
+    #local host=`hostname`
+    local pid="$$"
+    echo tmux-parallel-exec_${d}_${t}_${pid}
+}
+
+function __tmux__parallel_exec__()
+{
+    local narg=$#
+    local session_name=`__uniqueid__`
+
+    if [ $narg -lt 1 ]
+    then
+        echo "tmux-parallel-exec <cmd1> <cmd2> ... <cmdN>"
+        echo ""
+        echo "Run N commands in parallel via tmux by generating a tmux session and running commands in separate windows"
+        echo ""
+        echo "HINTS & NOTES"
+        echo "* Automatically generates a tmux session name using current date/time and PID"
+        echo ""
+        echo "* You may pass arguments within command strings. Example:"
+        echo "  tmux-parallel-exec \"echo foo\" \"echo yey\""
+        echo ""
+        echo "* If you want to a window to close automatically, append <; exit> inside the command. Example:"
+        echo "  tmux-parallel-exec \"echo foo\" \"echo yey; exit\""
+        echo ""
+        echo "* You may create simple loops as commands"
+        echo "  tmux-parallel-exec 'while true; do echo w1; sleep 2; done' 'while true; do echo w2; sleep 3; done' 'while true; do echo w3; sleep 1; done'"
+        echo ""
+        exit 1
+    fi
+    
+    local sc=`mktemp` # temp script
+    printf "command tmux new -s ${session_name} \\; " > "$sc"
+    local j=0
+    for (( j=1; j<=$narg; j++ ))
+    do
+        printf " send-keys \"${!j}\" C-m \\; " >> "$sc"
+        if [ $j -lt $narg ]
+        then
+            printf " split-window -v \\; " >> "$sc"
+        fi
+    done
+    echo " select-layout tiled \\;"  >> "$sc"
+    cat "$sc" # debug print
+
+    chmod 755 "$sc"
+    "$sc"
+    rm -f "$sc"
+}
+
+# ok with multiple quoted arguments
+__tmux__parallel_exec__ "$@"
+
+
+
+
+
