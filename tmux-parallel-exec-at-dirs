@@ -1,0 +1,78 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, May 2020
+
+set -e
+
+function __uniqueid__()
+{
+    # date, time, process info
+    local d=`command date +%Y%m%d`
+    local t=`command date +%H-%M-%S` # hour.minute.seconds (dots are useful for time, otherwise very unreadible)
+    #local host=`hostname`
+    local pid="$$"
+    echo tmux-parallel-exec-at-dirs_${d}_${t}_${pid}
+}
+
+function __tmux__parallel_exec_at_dirs__()
+{
+    local narg=$#
+    local session_name=`__uniqueid__`
+
+    if [ $narg -lt 2 ]
+    then
+        echo "tmux-parallel-exec-at-dirs <cmd> <dir1> ... <dirN>"
+        echo ""
+        echo "Run a single command within multiple directories via tmux windows."
+        echo ""
+        echo "EXAMPLES"
+        echo "* tmux-parallel-exec-at-dirs 'git pull' ~/projects/repo1 ~/projects/repo2"
+        echo "* tmux-parallel-exec-at-dirs 'git pull' ~/projects/*"
+        echo ""
+        echo "SEE tmux-parallel-exec tmux-parallel-exec-at-dirs"
+        exit 1
+    fi
+    
+    local cmd="$1"
+    local sc=`command mktemp` # temp script
+    # -- using tmux-parallel-exec as a wrapper complicates things (below) 
+    # -- for instance, $PWD may not be right, even if pwd is right
+    #printf "command tmux-parallel-exec " > "$sc"
+    #local j=0
+    #for (( j=2; j<=$narg; j++ ))
+    #do
+    #    # double-quates are not really necessary, below is simpler: printf "%s" "\" (cd \\\"${!j}\\\" && $cmd) \" " >> "$sc"
+    #    # (if there some path replacement, that'd be already done externally)
+    #    # Use ; instead of && as we don't know what cmd contains
+    #    command printf "%s" "\" command cd '${!j}' ; command pwd ; $cmd \" " >> "$sc"
+    #done
+    #echo "" >> "$sc" # add newline
+    # -- Therefore instead directly create the tmux script where we can send multiple command lines
+    local sc=`command mktemp` # temp script
+    printf "%s" "command tmux new -s ${session_name} \\; " > "$sc"
+    local j=0
+    for (( j=2; j<=$narg; j++ ))
+    do
+        command printf "%s" " send-keys \"cd '${!j}'\" C-m \\; " >> "$sc"
+        command printf "%s" " send-keys \"${cmd}\" C-m \\; " >> "$sc"
+        if [ $j -lt $narg ]
+        then
+            command printf "%s" " split-window -v \\; " >> "$sc"
+        fi
+    done
+    echo " select-layout tiled \\;"  >> "$sc"
+    echo " select-layout tiled \\;"  >> "$sc"
+    cat "$sc" # user probably wants to see this
+
+    # run the script
+    chmod 755 "$sc"
+    "$sc"
+    rm -f "$sc"
+}
+
+# ok with multiple quoted arguments
+__tmux__parallel_exec_at_dirs__ "$@"
+
+
+
+
+

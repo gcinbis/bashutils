@@ -6,8 +6,8 @@ set -e
 function __uniqueid__()
 {
     # date, time, process info
-    local d=`date +%Y%m%d`
-    local t=`date +%H-%M-%S` # hour.minute.seconds (dots are useful for time, otherwise very unreadible)
+    local d=`command date +%Y%m%d`
+    local t=`command date +%H-%M-%S` # hour.minute.seconds (dots are useful for time, otherwise very unreadible)
     #local host=`hostname`
     local pid="$$"
     echo tmux-parallel-exec_${d}_${t}_${pid}
@@ -36,26 +36,28 @@ function __tmux__parallel_exec__()
         echo "* You may create simple loops as commands"
         echo "  tmux-parallel-exec 'while true; do echo w1; sleep 2; done' 'while true; do echo w2; sleep 3; done' 'while true; do echo w3; sleep 1; done'"
         echo ""
+        echo "SEE tmux-parallel-exec tmux-parallel-exec-at-dirs"
         exit 1
     fi
     
-    local sc=`mktemp` # temp script
-    printf "command tmux new -s ${session_name} \\; " > "$sc"
+    local sc=`command mktemp` # temp script
+    printf "%s" "command tmux new -s ${session_name} \\; " > "$sc"
     local j=0
     for (( j=1; j<=$narg; j++ ))
     do
-        printf " send-keys \"${!j}\" C-m \\; " >> "$sc"
+        command printf "%s" " send-keys \"${!j}\" C-m \\; " >> "$sc"
         if [ $j -lt $narg ]
         then
-            printf " split-window -v \\; " >> "$sc"
+            command printf "%s" " split-window -v \\; " >> "$sc"
         fi
     done
     echo " select-layout tiled \\;"  >> "$sc"
-    cat "$sc" # debug print
+    cat "$sc" # user probably wants to see this
 
-    chmod 755 "$sc"
+    # run the script
+    command chmod 755 "$sc"
     "$sc"
-    rm -f "$sc"
+    command rm -f "$sc"
 }
 
 # ok with multiple quoted arguments
