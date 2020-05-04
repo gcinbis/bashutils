@@ -1,0 +1,110 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, May 2020
+
+set -e
+FOO=${TMUX_PARALLEL_MAX_PANES_PER_WINDOW:=9}
+
+function __uniqueid__()
+{
+    # date, time, process info
+    local d=`command date +%Y%m%d`
+    local t=`command date +%H-%M-%S` # hour.minute.seconds (dots are useful for time, otherwise very unreadible)
+    #local host=`hostname`
+    local pid="$$"
+    echo tmux-parallel-exec_${d}_${t}_${pid}
+}
+
+function __new_pane_or_window__() # create a new pane or a window
+{
+    local cmds_so_far=$1 # input argument
+    if [ $cmds_so_far -gt 0 ]; then # create a new pane/window if this is not the very first one
+        if (($cmds_so_far > 0)) && ! (($cmds_so_far % $TMUX_PARALLEL_MAX_PANES_PER_WINDOW)); then
+            echo "command tmux new-window -t ${session_name}" >> "$driver" # new window
+        else
+            echo "command tmux split-window -v -t ${session_name}" >> "$driver" # new pane
+            echo "command tmux select-layout -t ${session_name} tiled"  >> "$driver"  # do this after every pane to create space for a new pane
+        fi
+    fi
+}
+
+function __tmux__parallel_exec__()
+{
+    local narg=$#
+    local session_name=`__uniqueid__`
+
+    if [ $narg -lt 1 ]
+    then
+        echo "tmux-parallel-master <option-flags> -c <cmd1> -p <dir2> <cmd2> ... -p <dirN> <cmdN>"
+        echo ""
+        echo "Run N commands in parallel (optionally within specified locations) via tmux by generating a tmux session and running"
+        echo "commands in separate panes & windows. Creates a new window every TMUX_PARALLEL_MAX_PANES_PER_WINDOW (default 9)"
+        echo "panes to avoid too small panes. This is the most advanced and most complex of all tmux-parallel-* tools."
+        echo ""
+        echo "Automatically generates a tmux session name using current date/time and PID"
+        echo ""
+        echo "INPUT FLAGS"
+        echo "-e                   Automatically close a pane if the command has executed without errors. (default)"
+        echo "-p                   After completing the command execution, show a pause message which closes the pane on enter press."
+        echo "-c <cmdJ>            Run <cmdJ> in the current directory."
+        echo "-p <dirJ> <cmdJ>     Run <cmdJ> after changing directory to <dirJ>."
+        echo ""
+        echo "HINTS & NOTES"
+        echo "* You may pass arguments within command strings. Example:"
+        echo "  tmux-parallel-master -c \"echo foo\" -c \"echo yey\""
+        echo ""
+        echo "* If you want to a window to close automatically, append <; exit> inside the command. Example:"
+        echo "  tmux-parallel-master -c \"echo foo\" -c \"echo yey; exit\""
+        echo ""
+        echo "* You may create simple loops as commands"
+        echo "  tmux-parallel-master -c 'while true; do echo w1; sleep 2; done' -c 'while true; do echo w2; sleep 3; done' -c 'while true; do echo w3; sleep 1; done'"
+        echo ""
+        echo "SEE tmux-parallel-master tmux-parallel-exec tmux-parallel-at-dirs"
+        exit 1
+    fi
+
+    local pane_exit_mode='-e'
+    local driver=`command mktemp` # temp script, calls tmux options
+    local wrapper=`command mktemp` # temp script, command wrapper to handle exit cases, etc.
+
+    # initialize warpper script. this will contain a series of functionss with exit condition handlers
+    echo "#!/bin/bash" > "$wrapper"
+
+    echo "command tmux new -d -s ${session_name}" > "$driver" # create detached session
+    local j=0
+    local cmds_so_far=0 
+    for (( j=1; j<=$narg; j++ )); do
+        if [ ${j}=='-e' ]; then  # exit on completion
+        elif [ ${j}=='-p' ]; then  # pause on completion
+        elif [ ${j}=='-c' ]; then 
+            __new_pane_or_window__
+            cmds_so_far=$((cmds_so_far+1))
+            j=$((j+1)) # now points to <cmdJ>
+            echo "command tmux send-keys -t ${session_name} \"'${!j}'\" C-m" >> "$wrapper" # run command
+        elif [ ${j}=='-p' ]; then 
+            __new_pane_or_window__
+            cmds_so_far=$((cmds_so_far+1))
+            j=$((j+1)) # now points to <pathJ>
+            echo "command tmux send-keys -t ${session_name} \"command cd '${!j}'\" C-m" >> "$wrapper" # change directory
+            j=$((j+1)) # now points to <cmdJ>
+            echo "command tmux send-keys -t ${session_name} \"'${!j}'\" C-m" >> "$wrapper" # run command
+        fi
+        cmds_so_far=$((cmds_so_far+1))
+    done
+    echo "command tmux a -t ${session_name}" >> "$driver" # attach
+    # cat "$driver" # just for debug
+
+    # run the script
+    command chmod 755 "$driver"
+    "$driver"
+    command rm -f "$driver"
+}
+
+# ok with multiple quoted arguments
+__tmux__parallel_exec__ "$@"
+
+# IMPLEMENTATION NOTES
+# -- do not use the following single-line tmux call idea:
+#       tmux new -s session \; send-keys a C-m \; ...
+#    this approach makes it hard to debug & understand when something goes wrong
+#    therefore, instead, first create the session in detached mode, send keys to it and then attach to it
+

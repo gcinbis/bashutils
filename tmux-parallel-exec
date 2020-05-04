@@ -21,7 +21,7 @@ function __tmux__parallel_exec__()
 
     if [ $narg -lt 1 ]
     then
-        echo "tmux-parallel-exec <cmd1> <cmd2> ... <cmdN>"
+        echo "tmux-parallel-exec <options> <path1> <cmd1> <path2> <cmd2> ... <pathN> <cmdN>"
         echo ""
         echo "Run N commands in parallel via tmux by generating a tmux session and running commands in separate panes & windows"
         echo "Creates a new window every TMUX_PARALLEL_EXEC_MAX_PANES_PER_WINDOW (default 9) panes to avoid too small panes."
