@@ -40,7 +40,7 @@ function __tmux__parallel_exec_at_dirs__()
     echo "command tmux new -d -s ${session_name}" > "$sc" # detached
     local j=0
     for (( j=2; j<=$narg; j++ )); do
-        echo "command tmux send-keys -t ${session_name} \"cd '${!j}'\" C-m" >> "$sc"
+        echo "command tmux send-keys -t ${session_name} \"command cd '${!j}'\" C-m" >> "$sc"
         echo "command tmux send-keys -t ${session_name} \"${cmd}\" C-m" >> "$sc"
         if [ $j -lt $narg ]; then
             if (($j > 0)) && ! ((($j-1) % $TMUX_PARALLEL_EXEC_MAX_PANES_PER_WINDOW)); then
