@@ -45,7 +45,8 @@ Gokberk Cinbis, 2018.
 * `gnome-color-temperature`                     Shortcuts to alter Gnome color temperature settings.
 * `parse-path`                                  A well-designed path parsing tool.
 * `mv-addmoddate`                               Add modification date to filename and move to a target directory.
-* `tmux-parallel-exec`                          Execute several commands in parallel within tmux windows.
+* `tmux-parallel-exec`                          Execute multiple commands in parallel within tmux panes & windows.
+* `tmux-parallel-exec-at-dirs`                  Execute one command in parallel at multiple directories within tmux panes & windows.
 
 ## File conversion
 

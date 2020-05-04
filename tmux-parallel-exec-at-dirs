@@ -2,6 +2,7 @@
 # Author: Gokberk Cinbis, May 2020
 
 set -e
+FOO=${TMUX_PARALLEL_EXEC_MAX_PANES_PER_WINDOW:=9}
 
 function __uniqueid__()
 {
@@ -22,46 +23,37 @@ function __tmux__parallel_exec_at_dirs__()
     then
         echo "tmux-parallel-exec-at-dirs <cmd> <dir1> ... <dirN>"
         echo ""
-        echo "Run a single command within multiple directories via tmux windows."
+        echo "Run a single command within multiple directories via tmux panes & windows."
+        echo "Creates a new window every TMUX_PARALLEL_EXEC_MAX_PANES_PER_WINDOW (default 9) panes to avoid too small panes."
         echo ""
         echo "EXAMPLES"
-        echo "* tmux-parallel-exec-at-dirs 'git pull' ~/projects/repo1 ~/projects/repo2"
-        echo "* tmux-parallel-exec-at-dirs 'git pull' ~/projects/*"
+        echo '* tmux-parallel-exec-at-dirs pwd ~/*'
+        echo '* tmux-parallel-exec-at-dirs 'git pull' ~/projects/repo1 ~/projects/repo2'
+        echo '* tmux-parallel-exec-at-dirs 'git pull' ~/projects/*'
         echo ""
         echo "SEE tmux-parallel-exec tmux-parallel-exec-at-dirs"
         exit 1
     fi
-    
+   
     local cmd="$1"
     local sc=`command mktemp` # temp script
-    # -- using tmux-parallel-exec as a wrapper complicates things (below) 
-    # -- for instance, $PWD may not be right, even if pwd is right
-    #printf "command tmux-parallel-exec " > "$sc"
-    #local j=0
-    #for (( j=2; j<=$narg; j++ ))
-    #do
-    #    # double-quates are not really necessary, below is simpler: printf "%s" "\" (cd \\\"${!j}\\\" && $cmd) \" " >> "$sc"
-    #    # (if there some path replacement, that'd be already done externally)
-    #    # Use ; instead of && as we don't know what cmd contains
-    #    command printf "%s" "\" command cd '${!j}' ; command pwd ; $cmd \" " >> "$sc"
-    #done
-    #echo "" >> "$sc" # add newline
-    # -- Therefore instead directly create the tmux script where we can send multiple command lines
-    local sc=`command mktemp` # temp script
-    printf "%s" "command tmux new -s ${session_name} \\; " > "$sc"
+    echo "command tmux new -d -s ${session_name}" > "$sc" # detached
     local j=0
-    for (( j=2; j<=$narg; j++ ))
-    do
-        command printf "%s" " send-keys \"cd '${!j}'\" C-m \\; " >> "$sc"
-        command printf "%s" " send-keys \"${cmd}\" C-m \\; " >> "$sc"
-        if [ $j -lt $narg ]
-        then
-            command printf "%s" " split-window -v \\; " >> "$sc"
+    for (( j=2; j<=$narg; j++ )); do
+        echo "command tmux send-keys -t ${session_name} \"cd '${!j}'\" C-m" >> "$sc"
+        echo "command tmux send-keys -t ${session_name} \"${cmd}\" C-m" >> "$sc"
+        if [ $j -lt $narg ]; then
+            if (($j > 0)) && ! ((($j-1) % $TMUX_PARALLEL_EXEC_MAX_PANES_PER_WINDOW)); then
+                echo "command tmux new-window -t ${session_name}" >> "$sc"
+            else
+                echo "command tmux split-window -v -t ${session_name}" >> "$sc"
+                echo "command tmux select-layout -t ${session_name} tiled"  >> "$sc"  # do this after every pane to create space for a new pane
+            fi
+
         fi
     done
-    echo " select-layout tiled \\;"  >> "$sc"
-    echo " select-layout tiled \\;"  >> "$sc"
-    cat "$sc" # user probably wants to see this
+    echo "command tmux a -t ${session_name}" >> "$sc" # attach
+    # cat "$sc" # just for debug
 
     # run the script
     chmod 755 "$sc"
@@ -72,7 +64,20 @@ function __tmux__parallel_exec_at_dirs__()
 # ok with multiple quoted arguments
 __tmux__parallel_exec_at_dirs__ "$@"
 
-
+# IMPLEMENTATION NOTES
+# -- using tmux-parallel-exec as a wrapper complicates things (below) 
+# -- for instance, $PWD may not be right, even if pwd is right
+#printf "command tmux-parallel-exec " > "$sc"
+#local j=0
+#for (( j=2; j<=$narg; j++ ))
+#do
+#    # double-quates are not really necessary, below is simpler: printf "%s" "\" (cd \\\"${!j}\\\" && $cmd) \" " >> "$sc"
+#    # (if there some path replacement, that'd be already done externally)
+#    # Use ; instead of && as we don't know what cmd contains
+#    command printf "%s" "\" command cd '${!j}' ; command pwd ; $cmd \" " >> "$sc"
+#done
+#echo "" >> "$sc" # add newline
+# -- Therefore instead directly create the tmux script where we can send multiple command lines
 
 
 
