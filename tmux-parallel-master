@@ -13,24 +13,30 @@ function __uniqueid__()
     local t=`command date +%H-%M-%S` # hour.minute.seconds (dots are useful for time, otherwise very unreadible)
     #local host=`hostname`
     local pid="$$"
-    echo tmux-parallel-exec_${d}_${t}_${pid}
+    command echo tmux-parallel-exec_${d}_${t}_${pid}
 }
 
 function __new_pane_or_window__() # create a new pane or a window
 {
     if [ $cmds_so_far -gt 0 ]; then # create a new pane/window if this is not the very first one
         if (($cmds_so_far > 0)) && ! (($cmds_so_far % $TMUX_PARALLEL_MAX_PANES_PER_WINDOW)); then
-            echo "command tmux new-window -t ${session_name}" >> "$driver" # new window
+            command echo "command tmux new-window -t ${session_name}" >> "$driver" # new window
         else
-            echo "command tmux split-window -v -t ${session_name}" >> "$driver" # new pane
-            echo "command tmux select-layout -t ${session_name} tiled"  >> "$driver"  # do this after every pane to create space for a new pane
+            command echo "command tmux split-window -v -t ${session_name}" >> "$driver" # new pane
+            command echo "command tmux select-layout -t ${session_name} tiled"  >> "$driver"  # do this after every pane to create space for a new pane
         fi
     fi
 }
 
 function __increment_argi__() # just increment argi variable
 {
-    argi=$((argi+1)) # now points to <the first argument>
+    argi=$((argi+1))
+}
+
+
+function __decrement_argi__() # just decrement argi variable
+{
+    argi=$((argi-1)) 
 }
 
 function __increment_cmds_so_far__() # just increment cmds_so_far
@@ -48,20 +54,56 @@ function __new_cmd__() # handle <cmdj> <dirj> etc.
     __new_pane_or_window__ # before incrementing cmds_so_far
     __increment_cmds_so_far__
     __set_curwrapper_path__
-    echo "command tmux send-keys -t ${session_name} \"cat $curwrapper\" C-m" >> "$driver" # tell tmux to print this script before running it
-    echo "command tmux send-keys -t ${session_name} \"source $curwrapper\" C-m" >> "$driver" # tell tmux to read this script in the current pane
-    
+    command echo "command tmux send-keys -t ${session_name} \"command source $curwrapper\" C-m" >> "$driver" # tell tmux to read this script in the current pane
     __increment_argi__ # now argi points to new argument
 }
 
-function __write_pathJ__()
+# -- obsolete. now not needed since we're supporting multiple lines. one can easily write a cd command. --
+#function __write_pathJ__()
+#{
+#    command echo "cd '$1'" >> "$curwrapper" # change directory
+#}
+
+function __print_help_and_exit__ () 
 {
-    echo "cd '$1'" >> "$curwrapper" # change directory
+    command echo "tmux-parallel-master <option-flags> -c <cmd1_1> <cmd1_2> ... -c <cmd2_1> <cmd2_2> ... -c <cmdN_1> ..."
+    command echo ""
+    command echo "Run N commands in parallel (optionally within specified locations) via tmux by generating a tmux session and running"
+    command echo "commands in separate panes & windows. Creates a new window every TMUX_PARALLEL_MAX_PANES_PER_WINDOW (default 9)"
+    command echo "panes to avoid too small panes. This is the most advanced and most complex of all tmux-parallel-* tools."
+    command echo ""
+    command echo "Automatically generates a tmux session name using current date/time and PID"
+    command echo ""
+    command echo "INPUT FLAGS"
+    command echo "--pause                       After completing the command execution, show a pause message which closes the pane on enter press. (default)"
+    command echo "--close                       Automatically close a pane if the command has been executed without errors."
+    command echo "--interactive                 On completion, leave the pane open and remain in shell."
+    command echo "-c <cmdJ1> <cmdJ2>...         Run the series of commands <cmdJ1> <cmdJ2> ... consecutively, starting in the current directory. "
+    command echo "                              The arguments are considered as commands until a new argument starts with -"
+    command echo ""
+    command echo "HINTS & NOTES"
+    command echo "* The commands are run in the default terminal loaded by tmux. The exit handling is done via bash commands. If you are using a bash-incompatible shell"
+    command echo "  you may want to use --interactive flag."
+    command echo ""
+    command echo "* You may pass arguments within command strings and you may benefit from watch utility. Example:"
+    command echo '  tmux-parallel-master -c "ls /" -c "ls $HOME" -c "uptime" "uname -a" -c "watch date"'
+    command echo ""
+    command echo "* You can easily change directory before running a command. Example:"
+    command echo '  tmux-parallel-master -c "cd /" "pwd" -c "cd $HOME" "pwd"'
+    command echo ""
+    command echo "* You may create simple loops as commands. Example:"
+    command echo "  tmux-parallel-master -c 'echo FAST' 'while true; do echo w1; sleep 1; done' -c 'echo SLOW' 'while true; do echo w2; sleep 3; done'"
+    command echo ""
+    command echo "* To avoid syntax and readability problems, commands are not echoed but you can easily add your own echo statements."
+    command echo ""
+    command echo "SEE tmux-parallel-master tmux-parallel-exec tmux-parallel-at-dirs"
+    exit 1
 }
 
 function __write_cmdJ__()
 {
-    echo "$1" >> "$curwrapper" # run command
+    # do not echo: command echo "echo $1" >> "$curwrapper" # echo the command to be executed
+    command echo "$1" >> "$curwrapper" # run command
 }
 
 function __handle_finish_states__() # add the exit case handle to each per-pane script
@@ -70,11 +112,11 @@ function __handle_finish_states__() # add the exit case handle to each per-pane 
     for (( cmds_so_far=1; cmds_so_far<=$cmds_final; cmds_so_far++ )); do
         __set_curwrapper_path__
         if [[ "${pane_exit_mode}" == 'pause' ]]; then  
-            echo 'status=$?' >> "$curwrapper"
-            echo 'if [ $status -eq 0 ]; then read -p "Press enter to continue"; exit; fi' >> "$curwrapper"
+            command echo 'status=$?' >> "$curwrapper"
+            command echo 'if [ $status -eq 0 ]; then read -p "Press enter to continue"; exit; fi' >> "$curwrapper"
         elif [[ "${pane_exit_mode}" == 'close' ]]; then  
-            echo 'status=$?' >> "$curwrapper"
-            echo 'if [ $status -eq 0 ]; then exit; fi' >> "$curwrapper"
+            command echo 'status=$?' >> "$curwrapper"
+            command echo 'if [ $status -eq 0 ]; then exit; fi' >> "$curwrapper"
         else # interactive
             foo="" # do nothing , do not even write status.
         fi
@@ -87,37 +129,7 @@ function __tmux__parallel_exec__()
 
     if [ $narg -lt 1 ]
     then
-        echo "tmux-parallel-master <option-flags> -c <cmd1> -p <dir2> <cmd2> ... -p <dirN> <cmdN>"
-        echo ""
-        echo "Run N commands in parallel (optionally within specified locations) via tmux by generating a tmux session and running"
-        echo "commands in separate panes & windows. Creates a new window every TMUX_PARALLEL_MAX_PANES_PER_WINDOW (default 9)"
-        echo "panes to avoid too small panes. This is the most advanced and most complex of all tmux-parallel-* tools."
-        echo ""
-        echo "Automatically generates a tmux session name using current date/time and PID"
-        echo ""
-        echo "INPUT FLAGS"
-        echo "--pause                       After completing the command execution, show a pause message which closes the pane on enter press. (default)"
-        echo "--close                       Automatically close a pane if the command has been executed without errors."
-        echo "--interactive                 On completion, leave the pane open and remain in shell."
-        echo "-c <cmdJ1> <cmdJ2>...         Run the series of commands <cmdJ1> <cmdJ2> ... consecutively, starting in the current directory. "
-        echo "                              The arguments are considered as commands until a new argument starts with -"
-        echo "-p <dirJ> <cmdJ1> <cmdJ2> ... Run the series of commands <cmdJ1> <cmdJ2> ... after initiating to the directory <dirJ>."
-        echo ""
-        echo "HINTS & NOTES"
-        echo "* The commands are run in the default terminal loaded by tmux. The exit handling is done via bash commands. If you are using a bash-incompatible shell"
-        echo "  you may want to use --interactive flag."
-        echo ""
-        echo "* You may pass arguments within command strings. Example:"
-        echo "  tmux-parallel-master -c \"echo foo\" -c \"echo yey\""
-        echo ""
-        echo "* If you want to a window to close automatically, append <; exit> inside the command. Example:"
-        echo "  tmux-parallel-master -c \"echo foo\" -c \"echo yey; exit\""
-        echo ""
-        echo "* You may create simple loops as commands"
-        echo "  tmux-parallel-master -c 'while true; do echo w1; sleep 2; done' -c 'while true; do echo w2; sleep 3; done' -c 'while true; do echo w3; sleep 1; done'"
-        echo ""
-        echo "SEE tmux-parallel-master tmux-parallel-exec tmux-parallel-at-dirs"
-        exit 1
+        __print_help_and_exit__
     fi
 
     # design notes: 
@@ -138,10 +150,10 @@ function __tmux__parallel_exec__()
     debug_mode=0 # set to 1 to debug the script
 
     # initialize warpper script. this will contain a series of functions with exit condition handlers
-    echo "#!/bin/bash" > "$driver"
+    command echo "#!/bin/bash" > "$driver"
     # dont do this, run the driver as much as you can, keep going: echo "set -e" > "$driver"
 
-    echo "command tmux new -d -s ${session_name}" > "$driver" # create detached session
+    command echo "command tmux new -d -s ${session_name}" > "$driver" # create detached session
     for (( argi=1; argi<=$narg; argi++ )); do
         if [ "${!argi}" == '--pause' ]; then  
             pane_exit_mode='pause'
@@ -151,24 +163,31 @@ function __tmux__parallel_exec__()
             pane_exit_mode='interactive'
         elif [[ "${!argi}" == '-c' ]]; then 
             __new_cmd__ 
-            __write_cmdJ__ "${!argi}"
-        elif [[ "${!argi}" == '-p' ]]; then 
-            __new_cmd__ 
-            __write_pathJ__ "${!argi}"
-            __increment_argi__
-            __write_cmdJ__ "${!argi}"
+            # keep reading a new command until -... is reached
+            for (( ; argi<=$narg; argi++ )); do
+                if [[ ${!argi:0:1} == "-" ]] ; then
+                    __decrement_argi__
+                    break
+                else
+                    __write_cmdJ__ "${!argi}"
+                fi
+            done
+        else
+            command echo "Unrecognized argument: {!argi}"
+            __print_help_and_exit__
+            command rm -rf "$outdir"
         fi
     done
-    echo "command tmux a -t ${session_name}" >> "$driver" # attach
+    command echo "command tmux a -t ${session_name}" >> "$driver" # attach
     __handle_finish_states__
     command chmod 755 "$driver"
 
     # run the driver script
     if [[ $debug_mode == 1 ]]; then
-        echo "scripts have been written to $outdir" # just for debug
+        command echo "scripts have been written to $outdir" # just for debug
     else
         "$driver"
-        command rm -f "$driver"
+        command rm -rf "$outdir"
     fi
 }
 
