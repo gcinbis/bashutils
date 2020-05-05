@@ -74,6 +74,7 @@ function __print_help_and_exit__ ()
     command echo ""
     command echo "Automatically generates a tmux session name using current date/time and PID. The session name is printed on screen once the session is created."
     command echo ""
+    command echo ""
     command echo "INPUT FLAGS"
     command echo "--pause                       After completing the command execution, show a pause message which closes the pane on enter press. (default)"
     command echo "--close                       Automatically close a pane if the command has been executed without errors."
@@ -179,7 +180,15 @@ function __main__()
             command rm -rf "$outdir"
         fi
     done
-    command echo "command tmux a -t ${session_name}" >> "$driver" # attach
+
+    # attach commands
+    # do not automatically clean the temporary folder if the attachment has failed (as it tends to delete files before they are loaded
+    command echo "if command tmux a -t ${session_name};" >> "$driver" # attach
+    command echo "then command rm -rf \"$outdir\";" >> "$driver"
+    command echo "else command echo 'Cannot attach to tmux, run the following manually:'" >> "$driver"
+    command echo "     command echo tmux a -t ${session_name}" >> "$driver" 
+    command echo "     command echo rm -rf \"$outdir\"" >> "$driver" 
+    command echo "fi" >> "$driver" 
     __handle_finish_states__
     command chmod 755 "$driver"
 
@@ -188,7 +197,6 @@ function __main__()
         command echo "scripts have been written to $outdir" # just for debug
     else
         "$driver"
-        command rm -rf "$outdir"
     fi
 }
 

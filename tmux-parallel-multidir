@@ -12,13 +12,18 @@ function __print_help_and_exit__()
     echo "Before executing the command in each pane, the current directory is printed."
     echo ""
     echo "EXAMPLES"
-    echo '* tmux-parallel-multidir --close 'git pull' ~/projects/repo1 ~/projects/repo2'
+    echo '* Basic usage:'
+    echo '  tmux-parallel-multidir --close 'git pull' ~/projects/repo1 ~/projects/repo2'
+    echo '  tmux-parallel-multidir --pause 'git pull' ~/projects/repo1 ~/projects/repo2'
     echo ''
     echo '* Find directories and run simple commands within directories: (IFS trick is to handle files with spaces)'
     echo "  (IFS=$'\n'; tmux-parallel-multidir --pause 'clear;pwd;ls' "'$(find ~/Downloads -type d))'
     echo ''
+    echo '* Alternatively, you can do the following but you will need to attack to tmux manually if you want to see the executions:'
+    echo "  find ~/Downloads -type d | xargs tmux-parallel-multidir 'pwd;ls'"
+    echo ''
     echo '* Find git directories and run git commands within directories:'
-    echo "  (IFS=$'\n'; tmux-parallel-multidir --pause 'clear;pwd;ls' "'$(find ~/projects -type d -name ".git" -exec dirname {} \;))'
+    echo "  (IFS=$'\n'; tmux-parallel-multidir 'git status' "'$(find ~/projects -type d -name ".git" -exec dirname {} \;))'
     echo ''
     echo '* If you bashrc-defs.sh from https://github.com/gcinbis/bashutils to .bashrc, then you can replace "git status" above'
     echo '  with gitsyncroot'
@@ -47,10 +52,10 @@ function __main__()
                 state='reading_paths'
             fi
         else # reading_paths
-            execargs+=( "-c" "cd ${!argi}" "echo cd ${!argi}" "$cmd" ) # -c 'cd <pathJ>' <cmd>
+            execargs+=( "-c" "command cd '${!argi}'" "echo cd '${!argi}'" "$cmd" ) # -c 'cd <pathJ>' <cmd>
         fi
     done
-    # echo tmux-parallel-exec "${execargs[@]}" # debug-only
+    #echo tmux-parallel-exec "${execargs[@]}" # debug-only
     tmux-parallel-exec "${execargs[@]}"
 }
 
