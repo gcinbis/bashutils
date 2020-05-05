@@ -11,6 +11,10 @@ function __print_help_and_exit__()
     echo "Single-argument options starting with '--' before <cmd> are passed to tmux-parallel-exec (eg. --pause)."
     echo "Before executing the command in each pane, the current directory is printed."
     echo ""
+    echo "Supported <opts> arguments:"
+    echo "* All single-argument options of tmux-parallel-exec (eg. --pause)."
+    echo "* --session-name (see tmux-parallel-exec documentation)"
+    echo ""
     echo "EXAMPLES"
     echo '* Basic usage:'
     echo '  tmux-parallel-multidir --close 'git pull' ~/projects/repo1 ~/projects/repo2'
@@ -31,6 +35,11 @@ function __print_help_and_exit__()
     exit 1
 }
 
+function __increment_argi__() # just increment argi variable
+{
+    argi=$((argi+1))
+}
+
 function __main__()
 {
     local narg=$#
@@ -46,7 +55,12 @@ function __main__()
     for (( argi=1; argi<=$narg; argi++ )); do
         if [[ "$state" == "waiting_cmd" ]]; then
             if [[ ${!argi:0:2} == "--" ]] ; then # works without problems if argument is just - 
-                execargs+=( "${!argi}" ) # pass --pause, etc.
+                if [[ "${!argi}" == '--session-name' ]]; then 
+                    __increment_argi__
+                    execargs+=( "--session-name" "${!argi}" )
+                else
+                    execargs+=( "${!argi}" ) # pass --pause, etc.
+                fi
             else
                 cmd="${!argi}" # <cmd>
                 state='reading_paths'
