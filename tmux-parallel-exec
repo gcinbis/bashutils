@@ -72,7 +72,7 @@ function __print_help_and_exit__ ()
     command echo "commands in separate panes & windows. Creates a new window every TMUX_PARALLEL_MAX_PANES_PER_WINDOW (default 9)"
     command echo "panes to avoid too small panes. This is the most advanced and most complex of all tmux-parallel-* tools."
     command echo ""
-    command echo "Automatically generates a tmux session name using current date/time and PID"
+    command echo "Automatically generates a tmux session name using current date/time and PID. The session name is printed on screen once the session is created."
     command echo ""
     command echo "INPUT FLAGS"
     command echo "--pause                       After completing the command execution, show a pause message which closes the pane on enter press. (default)"
@@ -96,7 +96,7 @@ function __print_help_and_exit__ ()
     command echo ""
     command echo "* To avoid syntax and readability problems, commands are not echoed but you can easily add your own echo statements."
     command echo ""
-    command echo "SEE tmux-parallel-exec tmux-parallel-exec tmux-parallel-at-dirs"
+    command echo "SEE tmux-parallel-exec tmux-parallel-multidir"
     exit 1
 }
 
@@ -123,7 +123,7 @@ function __handle_finish_states__() # add the exit case handle to each per-pane 
     done
 }
 
-function __tmux__parallel_exec__()
+function __main__()
 {
     local narg=$#
 
@@ -154,6 +154,7 @@ function __tmux__parallel_exec__()
     # dont do this, run the driver as much as you can, keep going: echo "set -e" > "$driver"
 
     command echo "command tmux new -d -s ${session_name}" > "$driver" # create detached session
+    command echo "echo ${session_name}" >> "$driver" # driver will print the session name
     for (( argi=1; argi<=$narg; argi++ )); do
         if [ "${!argi}" == '--pause' ]; then  
             pane_exit_mode='pause'
@@ -192,7 +193,8 @@ function __tmux__parallel_exec__()
 }
 
 # ok with multiple quoted arguments
-__tmux__parallel_exec__ "$@"
+__main__ "$@"
+exit 0
 
 # IMPLEMENTATION NOTES
 # -- do not use the following single-line tmux call idea:
