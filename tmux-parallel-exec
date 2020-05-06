@@ -95,6 +95,7 @@ function __print_help__ ()
     command echo "--close                 Automatically close a pane if the command has been executed without errors."
     command echo "--interactive           On completion, leave the pane open and remain in shell."
     command echo "--session-name <name>   Use <name> instead of the auto-generated session name."
+    command echo "--session-prefix <name> Use <prefix> in the auto-generated session name."
     command echo "-c <cmdJ1> <cmdJ2>...   Run the series of commands <cmdJ1> <cmdJ2> ... consecutively, starting in the current directory. "
     command echo "                        The arguments are considered as commands until a new argument starts with -"
     command echo ""
@@ -180,11 +181,18 @@ function __main__()
             pane_exit_mode='interactive'
         elif [[ "${!argi}" == '--session-name' ]]; then 
             __increment_argi__
-            if [ $cmds_so_far -gt 0 ]; then # create a new pane/window if this is not the very first one
+            if [ $cmds_so_far -gt 0 ]; then
                 >&2 echo "--session-name argument must precede all -c arguments."
                 __cleanup__
             fi
             session_name="${!argi}"
+        elif [[ "${!argi}" == '--session-prefix' ]]; then 
+            __increment_argi__
+            if [ $cmds_so_far -gt 0 ]; then 
+                >&2 echo "--session-prefix argument must precede all -c arguments."
+                __cleanup__
+            fi
+            session_name="${!argi}${session_name}"
         elif [[ "${!argi}" == '-c' ]]; then 
             __new_cmd__ 
             # keep reading a new command until -... is reached

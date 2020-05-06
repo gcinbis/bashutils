@@ -128,7 +128,7 @@ function git-parallel-run-recursively() {
         echo 'git-parallel-run-recursively ~/projects "gitsyncroot-nomsg-periodic 3"'
         return 1
     else
-        execargs=( '--session-name' 'gitautosync' '--interactive' )
+        execargs=( '--session-prefix' 'git-parallel-' '--interactive' )
         IFS=$'\n' # tell for loop to parse around new lines, instead of spaces. presumes that paths do not contain newlines.
         for r in $(find "$1" -type d -name ".git" -exec dirname {} \;); do
             execargs+=( "-c" "command cd \"$r\"" "$2" )
