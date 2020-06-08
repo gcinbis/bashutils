@@ -111,11 +111,19 @@ function gitsyncroot-nomsg-periodic() {
         echo "Running gitsyncroot-nomsg-periodic at $PWD" 
         while true; do 
             gitsyncroot-nomsg
+            last_time="$(command date -u +%s)"
             echo "Running gitsyncroot-nomsg-periodic at $PWD" 
             printf "Last update: "
             date
-            echo "Running $1 times per hour. Next run in $sleep_seconds seconds after the time above. Wait."
-            command sleep $sleep_seconds 
+            echo "Running $1 times per hour, every $sleep_seconds seconds."
+            while true; do
+                command sleep 10 # sleep n seconds for polling (suggested=10)
+                cur_time="$(command date -u +%s)"
+                delta="$(($cur_time-$last_time))"
+                if [ "$delta" -ge $sleep_seconds ]; then break; fi # time to update
+                remain="$(($sleep_seconds-$delta))"
+                command printf "Next run in %6d seconds\r" "$remain"
+            done
         done
     fi
 }
@@ -123,7 +131,7 @@ function gitsyncroot-nomsg-periodic() {
 function git-parallel-run-recursively() { 
    if [[ "$#" != 2 ]]; then
         echo 'git-parallel-run-recursively <root> <cmd>'
-        echo 'Periodically runs <cmd>, within all git subdirectories recuriscvely placed under <root>, via tmux-parallel-exec.'
+        echo 'Periodically runs <cmd>, within all git subdirectories recursively placed under <root>, via tmux-parallel-exec.'
         echo 'EXAMPLE'
         echo 'git-parallel-run-recursively ~/projects "gitsyncroot-nomsg-periodic 3"'
         return 1
