@@ -91,7 +91,14 @@ alias git-undo-previous-commit-without-changing-anything-else='git reset --soft 
 alias git-undo-previous-commit-and-stage-file-without-changing-anything-else='git reset HEAD^' # the work directory is untouched: http://stackoverflow.com/questions/3528245/whats-the-difference-between-git-reset-mixed-soft-and-hard
 alias git-unstage-and-rm-from-index-keep-local-files-asis='git rm --cached -r' # git rm --cached -r <dirname>, git rm --cached <filename>. Good for files being tracked due to a previous commit, and if you now want to git-ignore them.
 alias git-commit-silent='git diff-index --quiet HEAD || git commit' # no error signal if there is nothing to commit
-alias git-commit-silent-nomsg='git diff-index --quiet HEAD || git commit -m NoMessage' # no error signal if there is nothing to commit
+function git-commit-silent-nomsg() {
+    d=`command date +%Y%m%d`
+    t=`command date +%H.%M.%S` # hour.minute.seconds (dots are useful for time, otherwise very unreadible)
+    #host=`command hostname`
+    #msg_="$host-$d-$t" # -- host can be sensitive, avoid it --
+    msg_="NoMessage-$d-$t" # -- host can be sensitive, avoid it --
+    git diff-index --quiet HEAD || git commit -m "$msg_" # no error signal if there is nothing to commit
+}
 alias git-pull-nomsg='git pull --no-edit'
 alias git-log-stat='git log --stat'
 alias git-brach-ls-all='git branch --list -a' 
