@@ -156,8 +156,8 @@ function git-parallel-run-recursively() {
 # GNU screen, tmux
 # ==============================
 
-alias newscreen='/usr/bin/screen -S';
-#alias newscreen2='/usr/bin/screen -c $HOME/.screenrc2 -S';  # create a .screenrc with just a different "escape" (ctrl-A) to use "screen inside screen" easily.
+alias screennew='/usr/bin/screen -S';
+#alias screennew2='/usr/bin/screen -c $HOME/.screenrc2 -S';  # create a .screenrc with just a different "escape" (ctrl-A) to use "screen inside screen" easily.
 alias screen='/usr/bin/screen -dr';
 
 alias txnew='tmux new -s' # followed by new session name
