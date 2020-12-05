@@ -1,0 +1,76 @@
+#!/bin/bash
+set -e
+
+# convert a pdf into grayscale
+function func-mv-addmoddate() {
+    # no! local args=($*) -- does not handle quotes.
+    # no! local narg=${#args[@]}
+    local narg=$#
+
+    if [ $narg -lt 2 ]
+    then
+        echo "USAGE: addname-moddate [<opt>] <file1> ... <fileN> <outdir>'"
+        echo "Renames each file by adding modification date to each filename (renames filename.ext to filename_<date>.<ext>)"
+        echo "and moves to the target directory <outdir>."
+        echo ""
+        echo "<opt>  (Optional) options:"
+        echo " --dryrun          Do not move any file, just print mv commands"
+        echo " --names-only      Print the new names only line by line, without any path prefixes. Ignore outdir, do not alter any file."
+        echo ""
+        echo "Reports errors for already existing target filenames and continues with the remaining ones."
+        exit 1
+    fi
+
+    outdir="${@: -1}"
+    if [ -d "$outdir" ]; then
+        pass=1
+    else
+        echo "Target directory path is invalid: $outdir"
+        exit 2
+    fi
+
+    mode="normal"
+    i0=1
+    if [ "$1" = "--dryrun" ]; then
+        mode='dryrun'
+        i0=2
+    elif [ "$1" = "--names-only" ]; then
+        mode='names-only'
+        i0=2
+    fi
+
+    for (( i = i0 ; i <= ($narg-1); i++ ))
+    do
+        # separate input name and extension
+        local f="${!i}"
+        f0=$(parse-path -fname-noext "$f")
+        ext=$(parse-path -ext "$f")
+
+        # partly from https://unix.stackexchange.com/questions/353083/add-modification-time-to-the-filename
+        outname="${f0}_$(date -r "$f" +'%Y-%m-%d_%H-%M')${ext}"
+        out="${outdir}/${outname}"
+
+        if [ -e "$out" ]; then 
+            print "ERROR: Already exists: $out$"
+        else
+            if [ $mode = 'normal' ]; then 
+                echo "$f -> $out"
+                mv -n "$f" "$out"
+            elif [ $mode = 'dryrun' ]; then 
+                echo mv -n "$f" "$out"
+            elif [ $mode = 'names-only' ]; then 
+                echo "$outname"
+            else
+                echo "UNKNOWN MODE (BUG)"
+                exit 9
+            fi
+        fi
+    done
+
+    exit 0
+}
+
+# ok with multiple quoted arguments
+func-mv-addmoddate "$@"
+
+

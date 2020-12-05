@@ -1,0 +1,33 @@
+#!/bin/bash
+set -e
+
+function compresspdf_ps2pdf() {
+    # no! local args=($*) -- does not handle quotes.
+    # no! local narg=${#args[@]}
+    local narg=$#
+    local input="$1"
+    local out="$2"
+
+    if [ $narg -ne 2 ]
+    then
+        echo "USAGE: pdf-print-two-sided input.pdf output.pdf"
+        echo "Uses ps2pdf to try to compress the pdf file."
+        echo ""
+        return 1
+    fi
+
+    # avoid overwriting by mistake
+    if [ -f "$out" ]
+    then
+        echo "Output: '$out' already exists. Exiting."
+        return 2
+    fi
+
+    ps2pdf "$input" "$out"
+}
+
+# ok with multiple quoted arguments
+compresspdf_ps2pdf "$@"
+
+
+

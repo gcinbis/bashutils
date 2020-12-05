@@ -1,0 +1,78 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, May 2020
+
+set -e
+
+function __print_help_and_exit__()
+{
+    echo "tmux-parallel-multidir <opts> <cmd> <dir1> ... <dirN>"
+    echo ""
+    echo "A wrapper to run a single-line command within multiple directories via tmux-parallel-exec."
+    echo "Single-argument options starting with '--' before <cmd> are passed to tmux-parallel-exec (eg. --pause)."
+    echo "Before executing the command in each pane, the current directory is printed."
+    echo ""
+    echo "Supported <opts> arguments:"
+    echo "* All single-argument options of tmux-parallel-exec (eg. --pause)."
+    echo "* --session-name (see tmux-parallel-exec documentation)"
+    echo ""
+    echo "EXAMPLES"
+    echo '* Basic usage:'
+    echo '  tmux-parallel-multidir --close 'git pull' ~/projects/repo1 ~/projects/repo2'
+    echo '  tmux-parallel-multidir --pause 'git pull' ~/projects/repo1 ~/projects/repo2'
+    echo ''
+    echo '* Find directories and run simple commands within directories: (IFS trick is to handle files with spaces)'
+    echo "  (IFS=$'\n'; tmux-parallel-multidir --pause 'clear;pwd;ls' "'$(find ~/Downloads -type d))'
+    echo ''
+    echo '* Alternatively, you can do the following but you will need to attack to tmux manually if you want to see the executions:'
+    echo "  find ~/Downloads -type d | xargs tmux-parallel-multidir 'pwd;ls'"
+    echo ''
+    echo '* Find git directories and run git commands within directories:'
+    echo "  (IFS=$'\n'; tmux-parallel-multidir 'git status' "'$(find ~/projects -type d -name ".git" -exec dirname {} \;))'
+    echo ''
+    echo '* If you bashrc-defs.sh from https://github.com/gcinbis/bashutils to .bashrc, then you can replace "git status" above'
+    echo '  with gitsyncroot'
+    echo ""
+    exit 1
+}
+
+function __increment_argi__() # just increment argi variable
+{
+    argi=$((argi+1))
+}
+
+function __main__()
+{
+    local narg=$#
+    if [ $narg -lt 2 ]
+    then
+        __print_help_and_exit__
+    fi
+
+    # init/set global variables
+    argi=0 # argument reading index
+    execargs=()
+    state='waiting_cmd'
+    for (( argi=1; argi<=$narg; argi++ )); do
+        if [[ "$state" == "waiting_cmd" ]]; then
+            if [[ ${!argi:0:2} == "--" ]] ; then # works without problems if argument is just - 
+                if [[ "${!argi}" == '--session-name' ]]; then 
+                    __increment_argi__
+                    execargs+=( "--session-name" "${!argi}" )
+                else
+                    execargs+=( "${!argi}" ) # pass --pause, etc.
+                fi
+            else
+                cmd="${!argi}" # <cmd>
+                state='reading_paths'
+            fi
+        else # reading_paths
+            execargs+=( "-c" "command cd '${!argi}'" "echo cd '${!argi}'" "$cmd" ) # -c 'cd <pathJ>' <cmd>
+        fi
+    done
+    #echo tmux-parallel-exec "${execargs[@]}" # debug-only
+    tmux-parallel-exec "${execargs[@]}"
+}
+
+# ok with multiple quoted arguments
+__main__ "$@"
+

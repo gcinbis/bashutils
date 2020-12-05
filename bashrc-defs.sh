@@ -72,8 +72,9 @@ alias tar='tar -k' # do not overwrite
 
 # git, also see home-config/bin
 # add the prefix __ to keep bash autocomplete easy-to-use.
-alias __gitsync='(git add . && git-commit-silent && echo "git pull & push" && git pull && git push)' # pull and send
-alias __gitsync-nomsg='(git add . && git-commit-silent-nomsg && echo "git-pull-nomsg & git push" && git-pull-nomsg && git push)' # pull and send
+# In case of cryptic 'git pull' problems, it is a good idea to try 'git fetch' first.
+alias __gitsync='(git reset && git add . && git-commit-silent && echo "git pull & push" && git pull && git push)' # pull and send
+alias __gitsync-nomsg='(git reset && git add . && git-commit-silent-nomsg && echo "git-pull-nomsg & git push" && git-pull-nomsg && git push)' # pull and send
 alias gitsyncroot='(command cd `git-print-root-path` && __gitsync)' 
 alias gitsyncroot-nomsg='(command cd `git-print-root-path` && __gitsync-nomsg)' 
 alias gitdot='(git add . && git commit && git push)' # send only
@@ -83,13 +84,21 @@ alias git-ls-gitignore='git ls-files --ignored --exclude-standard' # list .gitig
 alias git-revert-file='git checkout --'
 alias git-config-filemodeoff='(git config --global core.filemode false && git config core.filemode false)'
 alias git-config-vimdiff='(git config --global diff.tool vimdiff && git config --global merge.tool vimdiff && git config --global difftool.prompt false)'
+alias git-config-mergetool='(git config merge.tool vimdiff && git config merge.conflictstyle diff3 && git config mergetool.prompt false)'
 alias git-url='git remote -v'
 alias git-difftool-prev='git difftool HEAD@{1}'
 alias git-undo-previous-commit-without-changing-anything-else='git reset --soft HEAD^' # this remembers "git add" and similar commands. The working directory is untouched: http://stackoverflow.com/questions/2845731/how-to-uncommit-my-last-commit-in-git
 alias git-undo-previous-commit-and-stage-file-without-changing-anything-else='git reset HEAD^' # the work directory is untouched: http://stackoverflow.com/questions/3528245/whats-the-difference-between-git-reset-mixed-soft-and-hard
 alias git-unstage-and-rm-from-index-keep-local-files-asis='git rm --cached -r' # git rm --cached -r <dirname>, git rm --cached <filename>. Good for files being tracked due to a previous commit, and if you now want to git-ignore them.
 alias git-commit-silent='git diff-index --quiet HEAD || git commit' # no error signal if there is nothing to commit
-alias git-commit-silent-nomsg='git diff-index --quiet HEAD || git commit -m NoMessage' # no error signal if there is nothing to commit
+function git-commit-silent-nomsg() {
+    d=`command date +%Y%m%d`
+    t=`command date +%H.%M.%S` # hour.minute.seconds (dots are useful for time, otherwise very unreadible)
+    #host=`command hostname`
+    #msg_="$host-$d-$t" # -- host can be sensitive, avoid it --
+    msg_="NoMessage-$d-$t" # -- host can be sensitive, avoid it --
+    git diff-index --quiet HEAD || git commit -m "$msg_" # no error signal if there is nothing to commit
+}
 alias git-pull-nomsg='git pull --no-edit'
 alias git-log-stat='git log --stat'
 alias git-brach-ls-all='git branch --list -a' 
@@ -98,13 +107,75 @@ alias git-cd-root-path='command echo cd `git-print-root-path` && command cd `git
 alias git-pushd-root-path='command echo pushd `git-print-root-path` && command pushd `git-print-root-path`'
 alias git-du='(echo "* Calculating approximate .git directory size (after housekeeping)" && git-cd-root-path && git gc && du -sh .git)'
 
+function gitsyncroot-nomsg-periodic() {
+    if [[ "$#" != 1 ]]; then
+        echo 'gitsyncroot-nomsg-periodic <NumUpdatesPerHour>'
+        echo 'Periodically runs gitsyncroot-nomsg in the current repository.'
+        echo "Error: invalid number of input arguments ($#)"
+        return 1
+    else
+        let sleep_seconds=3600/$1
+        echo "Running gitsyncroot-nomsg-periodic at $PWD" 
+        while true; do 
+            gitsyncroot-nomsg
+            last_time="$(command date -u +%s)"
+            echo "Running gitsyncroot-nomsg-periodic at $PWD" 
+            printf "Last update: "
+            date
+            echo "Running $1 times per hour, every $sleep_seconds seconds."
+            while true; do
+                command sleep 10 # sleep n seconds for polling (suggested=10)
+                cur_time="$(command date -u +%s)"
+                delta="$(($cur_time-$last_time))"
+                if [ "$delta" -ge $sleep_seconds ]; then break; fi # time to update
+                remain="$(($sleep_seconds-$delta))"
+                command printf "Next run in %6d seconds\r" "$remain"
+            done
+        done
+    fi
+}
+
+function git-parallel-run-recursively() { 
+   if [[ "$#" != 2 ]]; then
+        echo 'git-parallel-run-recursively <root> <cmd>'
+        echo 'Periodically runs <cmd>, within all git subdirectories recursively placed under <root>, via tmux-parallel-exec.'
+        echo 'EXAMPLE'
+        echo 'git-parallel-run-recursively ~/projects "gitsyncroot-nomsg-periodic 3"'
+        return 1
+    else
+        execargs=( '--session-prefix' 'git-parallel-' '--interactive' )
+        IFS=$'\n' # tell for loop to parse around new lines, instead of spaces. presumes that paths do not contain newlines.
+        for r in $(find "$1" -type d -name ".git" -exec dirname {} \;); do
+            execargs+=( "-c" "command cd \"$r\"" "$2" )
+        done
+        tmux-parallel-exec "${execargs[@]}"
+   fi
+}
+
 # ==============================
-# GNU screen
+# GNU screen, tmux
 # ==============================
 
-alias newscreen='/usr/bin/screen -S';
-alias newscreen2='/usr/bin/screen -c $HOME/.screenrc2 -S';  # create a .screenrc with just a different "escape" (ctrl-A) to use "screen inside screen" easily.
+alias screennew='/usr/bin/screen -S';
+#alias screennew2='/usr/bin/screen -c $HOME/.screenrc2 -S';  # create a .screenrc with just a different "escape" (ctrl-A) to use "screen inside screen" easily.
 alias screen='/usr/bin/screen -dr';
+
+alias txnew='tmux new -s' # followed by new session name
+function tx() {
+    if [[ $# = 0 ]] 
+    then
+        tmux ls
+        echo "To attach: tx <session-name>"
+    else
+        tmux attach -t "$1"
+    fi
+}
+
+function txcolours() {
+    # https://superuser.com/questions/285381/how-does-the-tmux-color-palette-work/285400
+    # for i in {0..255}; do printf "\x1b[38;5;${i}mcolour${i}\x1b[0m\n"; done
+    for i in {0..255}; do printf "\x1b[38;5;${i}mcolor%-5i\x1b[0m" $i ; if ! (( ($i + 1 ) % 8 )); then echo ; fi ; done
+}
 
 # ==============================
 # ctags
@@ -228,6 +299,7 @@ alias numcpu='cat /proc/cpuinfo | grep proc | wc -l'
 alias readrc='source ~/.bashrc'
 alias uname='uname -a'
 alias free='free -m'
+alias lsdisplays="w -oush | grep -Eo ' :[0-9]+' | uniq | cut -d \  -f 2" # list all DISPLAY options. (https://unix.stackexchange.com/questions/17255/is-there-a-command-to-list-all-open-displays-on-a-machine)
 
 # disk usage
 alias df='df -h'
@@ -385,9 +457,10 @@ function lsencfs() {
 }
 
 # ==============================
-# anaconda python
+# python, anaconda
 # ==============================
 
+alias jupyter2py='jupyter nbconvert --to script' # jupyter2py <file.ipynb>
 
 function conda-custom-activate() {
     # adapted from the lines added by anaconda installer into .bashrc
@@ -413,7 +486,6 @@ function conda-custom-activate() {
     # <<< conda initialize <<<
 }
 
-
-
+# better debugging: install pdbpp
 
 

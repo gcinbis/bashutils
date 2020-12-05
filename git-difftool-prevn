@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+if [ $# -le 0 ]; then
+    echo "USAGE: git-difftool-prevn <PrevNum> [optional-filename]"
+    echo "Diffs to <PrevNum> previous version."
+    exit 1 
+fi
+args=("$@")  # preserves ".." groups
+narg=${#args[@]}
+git difftool "HEAD@{$1}" ${args[@]:1:$narg}
+
+
+

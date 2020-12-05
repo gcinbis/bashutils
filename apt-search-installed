@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+if [ "$#" -ne 1 ]; then
+    echo 'Usage: apt-search-instaled <regexp>'
+    echo 'Search using <regexp> among the installed packages of dpkg / apt package manager.'
+    echo 'Ubuntu alteratives:'
+    echo '* apt list --installed | grep <regexp> # search among installed packages'
+    echo '* apt-cache search <regexp> # search among all packages'
+    exit 1
+fi
+
+# 'apt' does not support scripting (CLI).
+# apt list --installed | grep "$1"
+
+dpkg-query --list | grep "$1"
+
