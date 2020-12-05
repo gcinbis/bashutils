@@ -34,28 +34,31 @@ out="$2"
 txt="$3"
 
 # avoid overwriting by mistake
-if [ -f $out ]
+if [ -f "$out" ]
 then
     echo "Output: $out already exists. First delete existing output file."
     exit
 fi
 
 tmpDir=`mktemp -d -t tmp.pdf_add_headerXXXXX`
-if [ -f $tmpDir ]
+if [ -f "$tmpDir" ]
 then
     echo "ERROR, TEMP DIRETORY ALREADY EXISTS"
     exit
 fi
 
-mkdir -p $tmpDir
+echo "$pdf-add-header-first-page:temp_directory--->$tmpDir"
+
+mkdir -p "$tmpDir"
 # dont do this: cp "$in" "$tmpDir/"
 orgDir="$PWD"
-cd $tmpDir
+cd "$tmpDir"
 echo "ENTERING THE WORK DIRECTORY: $tmpDir"
 
 # create a symlink to input file to avoid blues with underscores and spaces, instead of this: in="$orgDir/$inorg"
 in="input.pdf"
-ln -s "$orgDir/$inorg" "$in"
+#ln -s "$orgDir/$inorg" "$in"
+cp "$orgDir/$inorg" "$in" # not ideal but works
 
 # create a temp latex file
 echo "\\documentclass[12pt]{article}" >> tmp.tex
