@@ -57,8 +57,12 @@ echo "ENTERING THE WORK DIRECTORY: $tmpDir"
 
 # create a symlink to input file to avoid blues with underscores and spaces, instead of this: in="$orgDir/$inorg"
 in="input.pdf"
-#ln -s "$orgDir/$inorg" "$in"
-cp "$orgDir/$inorg" "$in" # not ideal but works
+ln -s "$orgDir/$inorg" "$in"
+#cp "$orgDir/$inorg" "$in" # less efficient
+
+# check number of pages in the pdf file using imagemagick
+# source: https://stackoverflow.com/questions/14704274/how-to-write-shell-script-for-finding-number-of-pages-in-pdf
+numberOfPages=$(identify "$in" 2>/dev/null | wc -l | tr -d ' ')
 
 # create a temp latex file
 echo "\\documentclass[12pt]{article}" >> tmp.tex
@@ -71,7 +75,10 @@ echo "{\\begin{tikzpicture}[remember picture,overlay]" >> tmp.tex
 echo " \\node at ([yshift=-0.7cm] current page.north) {\detokenize{$txt}};" >> tmp.tex
 echo " \\end{tikzpicture}}" >> tmp.tex
 echo ",pages=1]{\\detokenize{$in}}" >> tmp.tex
-echo "\\includepdf[pages=2-]{\\detokenize{$in}}" >> tmp.tex
+if [ "$numberOfPages" -gt 1 ]; then
+    echo "Number of pages: #$numberOfPages#"
+    echo "\\includepdf[pages=2-]{\\detokenize{$in}}" >> tmp.tex
+fi
 echo "\\end{document}" >> tmp.tex
 
 pdflatex tmp.tex
@@ -79,6 +86,7 @@ pdflatex tmp.tex # for some reason double-compilation is needed, why??
 cd "$orgDir"
 mv "$tmpDir/tmp.pdf" "$out"
 
-echo "RUN THIS FOR CLEANUP: rm -rf $tmpDir" # dont do this automatically, in case something goes wrong... this is not super-critical as the remaining files in the directory are pretty slim
+# clean up
+rm -rf "$tmpDir"
 
 
