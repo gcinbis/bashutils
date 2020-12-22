@@ -165,7 +165,8 @@ function tx() {
     if [[ $# = 0 ]] 
     then
         tmux ls
-        echo "To attach: tx <session-name>"
+        echo ""
+        echo "- USAGE: \"tx [session-name]\" (attach a session) | \"tx\" (list sessions)"
     else
         tmux attach -t "$1"
     fi
