@@ -107,51 +107,6 @@ alias git-cd-root-path='command echo cd `git-print-root-path` && command cd `git
 alias git-pushd-root-path='command echo pushd `git-print-root-path` && command pushd `git-print-root-path`'
 alias git-du='(echo "* Calculating approximate .git directory size (after housekeeping)" && git-cd-root-path && git gc && du -sh .git)'
 
-function gitsyncroot-nomsg-periodic() {
-    if [[ "$#" != 1 ]]; then
-        echo 'gitsyncroot-nomsg-periodic <NumUpdatesPerHour>'
-        echo 'Periodically runs gitsyncroot-nomsg in the current repository.'
-        echo "Error: invalid number of input arguments ($#)"
-        return 1
-    else
-        let sleep_seconds=3600/$1
-        echo "Running gitsyncroot-nomsg-periodic at $PWD" 
-        while true; do 
-            gitsyncroot-nomsg
-            last_time="$(command date -u +%s)"
-            echo "Running gitsyncroot-nomsg-periodic at $PWD" 
-            printf "Last update: "
-            date
-            echo "Running $1 times per hour, every $sleep_seconds seconds."
-            while true; do
-                command sleep 10 # sleep n seconds for polling (suggested=10)
-                cur_time="$(command date -u +%s)"
-                delta="$(($cur_time-$last_time))"
-                if [ "$delta" -ge $sleep_seconds ]; then break; fi # time to update
-                remain="$(($sleep_seconds-$delta))"
-                command printf "Next run in %6d seconds\r" "$remain"
-            done
-        done
-    fi
-}
-
-function git-parallel-run-recursively() { 
-   if [[ "$#" != 2 ]]; then
-        echo 'git-parallel-run-recursively <root> <cmd>'
-        echo 'Periodically runs <cmd>, within all git subdirectories recursively placed under <root>, via tmux-parallel-exec.'
-        echo 'EXAMPLE'
-        echo 'git-parallel-run-recursively ~/projects "gitsyncroot-nomsg-periodic 3"'
-        return 1
-    else
-        execargs=( '--session-prefix' 'git-parallel-' '--interactive' )
-        IFS=$'\n' # tell for loop to parse around new lines, instead of spaces. presumes that paths do not contain newlines.
-        for r in $(find "$1" -type d -name ".git" -exec dirname {} \;); do
-            execargs+=( "-c" "command cd \"$r\"" "$2" )
-        done
-        tmux-parallel-exec "${execargs[@]}"
-   fi
-}
-
 # ==============================
 # GNU screen, tmux
 # ==============================

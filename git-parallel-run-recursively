@@ -1,0 +1,25 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, May 2020
+
+set -e
+
+function __main__() {
+   if [[ "$#" != 2 ]]; then
+        echo 'git-parallel-run-recursively <root> <cmd>'
+        echo 'Periodically runs <cmd>, within all git subdirectories recursively placed under <root>, via tmux-parallel-exec.'
+        echo 'EXAMPLE'
+        echo 'git-parallel-run-recursively ~/projects "gitsyncroot-nomsg-periodic 3"'
+        return 1
+    else
+        execargs=( '--session-prefix' 'git-parallel-' '--interactive' )
+        IFS=$'\n' # tell for loop to parse around new lines, instead of spaces. presumes that paths do not contain newlines.
+        for r in $(find "$1" -type d -name ".git" -exec dirname {} \;); do
+            execargs+=( "-c" "command cd \"$r\"" "$2" )
+        done
+        tmux-parallel-exec "${execargs[@]}"
+   fi
+}
+
+# ok with multiple quoted arguments
+__main__ "$@"
+

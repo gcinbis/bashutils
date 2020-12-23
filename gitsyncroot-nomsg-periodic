@@ -1,0 +1,55 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, May 2020 
+
+set -e
+shopt -s expand_aliases
+
+# -- copy pasted from bashrc-defs for portability --
+# this way:
+# * the script doesn't require .bashrc, to be used in Makefile, etc. more easily
+# * this becomes a standalone script with fewer dependencies 
+alias gitsyncroot-nomsg='(command cd `git-print-root-path` && __gitsync-nomsg)' 
+alias git-print-root-path='git rev-parse --show-toplevel'
+alias __gitsync-nomsg='(git reset && git add . && git-commit-silent-nomsg && echo "git-pull-nomsg & git push" && git-pull-nomsg && git push)' # pull and send
+function git-commit-silent-nomsg() {
+    d=`command date +%Y%m%d`
+    t=`command date +%H.%M.%S` # hour.minute.seconds (dots are useful for time, otherwise very unreadible)
+    #host=`command hostname`
+    #msg_="$host-$d-$t" # -- host can be sensitive, avoid it --
+    msg_="NoMessage-$d-$t" # -- host can be sensitive, avoid it --
+    git diff-index --quiet HEAD || git commit -m "$msg_" # no error signal if there is nothing to commit
+}
+alias git-pull-nomsg='git pull --no-edit'
+
+function __main__()
+{
+    if [[ "$#" != 1 ]]; then
+        echo 'gitsyncroot-nomsg-periodic <NumUpdatesPerHour>'
+        echo 'Periodically runs gitsyncroot-nomsg in the current repository.'
+        echo "Error: invalid number of input arguments ($#)"
+        return 1
+    else
+        let sleep_seconds=3600/$1
+        echo "Running gitsyncroot-nomsg-periodic at $PWD" 
+        while true; do 
+            gitsyncroot-nomsg
+            last_time="$(command date -u +%s)"
+            echo "Running gitsyncroot-nomsg-periodic at $PWD" 
+            printf "Last update: "
+            date
+            echo "Running $1 times per hour, every $sleep_seconds seconds."
+            while true; do
+                command sleep 10 # sleep n seconds for polling (suggested=10)
+                cur_time="$(command date -u +%s)"
+                delta="$(($cur_time-$last_time))"
+                if [ "$delta" -ge $sleep_seconds ]; then break; fi # time to update
+                remain="$(($sleep_seconds-$delta))"
+                command printf "Next run in %6d seconds\r" "$remain"
+            done
+        done
+    fi
+}
+
+# ok with multiple quoted arguments
+__main__ "$@"
+
