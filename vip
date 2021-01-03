@@ -1,0 +1,113 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, Jan 2021
+
+set -e
+
+function __print_help_and_exit__()
+{
+    echo "vip <pattern> [<file1> <file2> ...]"
+    echo ""
+    echo "Open files containing <pattern> in vim as tabs. grep is run in case-insensitive mode."
+    echo "If no filename is given, all files in the currrent directory are fed into grep (ie. *)"
+    echo ""
+    echo "EXAMPLES"
+    echo "* vip section"
+    echo "* vip section *.tex"
+    echo "* find . -name "*.tex" | xargs vip section"
+    exit 1
+}
+ 
+function __main__()
+{
+    local narg=$#
+    if [ $narg -eq 0 ]
+    then
+        __print_help_and_exit__
+    fi
+
+    if [ $narg -eq 1 ]
+    then
+        vim -p `command grep -sil "$1" *`
+    else
+        # init/set global variables
+        execargs=()
+        for (( argi=2; argi<=$narg; argi++ )); do
+            execargs+=( "${!argi}" ) 
+        done
+        vim -p `command grep -sil "$1" "${execargs[@]}"`
+    fi
+}
+
+# ok with multiple quoted arguments
+__main__ "$@"
+
+#########################
+# original simple version
+#########################
+#
+# # files with matching content in the current dir. use vm2* or vmfind for recursive versions.
+# function vm() {
+#     vi `grep -il "$*" *` 
+# }
+
+##############################################################
+# alternatives that can latter be added as needed as arguments
+##############################################################
+#
+# # vm: see the separate script.
+# 
+# # to open files with filenames a matching pattern (case insensitive)
+# function vo() {
+#     vi `/bin/ls -1 | grep --color=never -i "$*"` 
+# }
+# 
+# function vmR() {
+#     if [[ $# = 0 ]] 
+#     then
+#         echo "Usage: vmR <grep arguments>"
+#     fi
+#     # doesn't work (on mac): vi `eval "find . -type f" | xargs -0 grep -sil "$*"` 
+#     echo eval "find . -type f" | xargs -0 grep -il "$*"
+#     vi `eval "find . -type f" | xargs -0 grep -il "$*"` 
+# }
+# 
+# # search file contents recursively
+# # find . -type f -execdir grep -H caffe_data {} \;
+# 
+# # files with matching content in the current & sub directories among .cpp,.m,etc.. (see $FINDF_SRC)
+# function vm2() {
+#     if [[ $# = 0 ]] 
+#     then
+#         echo "Usage: vm2 <grep arguments>"
+#     fi
+#     vi `eval "find . -type f $FINDF_SRC" | xargs -0 grep -sil "$*"` 
+# }
+# 
+# # files with NOT matching content in the current & sub directories among .cpp,.m,etc.. (see $FINDF_SRC)
+# function vm2not() {
+#     if [[ $# = 0 ]] 
+#     then
+#         echo "Usage: vm2 <grep arguments>"
+#     fi
+#     vi `eval "find . -type f $FINDF_SRC" | xargs -0 grep -siL "$*"` 
+# }
+# 
+# # case sensitive version of vm2
+# function vm2case() {
+#     if [[ $# = 0 ]] 
+#     then
+#         echo "Usage: vm2 <grep arguments>"
+#     fi
+#     vi `eval "find . -type f $FINDF_SRC" | xargs -0 grep -sl "$*"` 
+# }
+# 
+# # files with matching content in the current & sub directories among .m files.
+# function vmm() {
+#     if [[ $# = 0 ]] 
+#     then
+#         echo "Usage: vmm <grep arguments>"
+#     fi
+#     vi `eval "find . -type f -name '*.m' -print0" | xargs -0 grep -sil "$*"` 
+# }
+
+

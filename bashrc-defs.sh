@@ -170,69 +170,9 @@ alias vim="$VIM_DEFAULT -p"
 alias gvim='gvim -p'
 alias vi="$VIM_DEFAULT -p"
 
-# to open files with filenames a matching pattern (case insensitive)
-function vo() {
-    vi `/bin/ls -1 | grep --color=never -i "$*"` 
-}
-
-# files with matching content in the current dir. use vm2* or vmfind for recursive versions.
-function vm() {
-    #vi `grep -l "$*" *` "-c \"/ $*\""
-    vi `grep -il "$*" *` 
-}
-
-# files with matching content in the current & sub directories among all files.
-function vmR() {
-    if [[ $# = 0 ]] 
-    then
-        echo "Usage: vmR <grep arguments>"
-    fi
-    # doesn't work (on mac): vi `eval "find . -type f" | xargs -0 grep -sil "$*"` 
-    echo eval "find . -type f" | xargs -0 grep -il "$*"
-    vi `eval "find . -type f" | xargs -0 grep -il "$*"` 
-}
-
-# search file contents recursively
-# find . -type f -execdir grep -H caffe_data {} \;
-
-# files with matching content in the current & sub directories among .cpp,.m,etc.. (see $FINDF_SRC)
-function vm2() {
-    if [[ $# = 0 ]] 
-    then
-        echo "Usage: vm2 <grep arguments>"
-    fi
-    vi `eval "find . -type f $FINDF_SRC" | xargs -0 grep -sil "$*"` 
-}
-
-# files with NOT matching content in the current & sub directories among .cpp,.m,etc.. (see $FINDF_SRC)
-function vm2not() {
-    if [[ $# = 0 ]] 
-    then
-        echo "Usage: vm2 <grep arguments>"
-    fi
-    vi `eval "find . -type f $FINDF_SRC" | xargs -0 grep -siL "$*"` 
-}
-
-# case sensitive version of vm2
-function vm2case() {
-    if [[ $# = 0 ]] 
-    then
-        echo "Usage: vm2 <grep arguments>"
-    fi
-    vi `eval "find . -type f $FINDF_SRC" | xargs -0 grep -sl "$*"` 
-}
-
-# files with matching content in the current & sub directories among .m files.
-function vmm() {
-    if [[ $# = 0 ]] 
-    then
-        echo "Usage: vmm <grep arguments>"
-    fi
-    vi `eval "find . -type f -name '*.m' -print0" | xargs -0 grep -sil "$*"` 
-}
-
-# files with matching content under all subdirs with a particular name & content pattern
-function vmfind() {
+# files with matching content under all subdirs with a particular name & content pattern.
+# also see the script "vip".
+function vifind() {
     if [ $# -ne 2 ]; then
         echo "Search all files under all subdirectories with a particular name pattern and a grep pattern"
         echo "Example: vmfind \"*.cpp\" mxGetData"
