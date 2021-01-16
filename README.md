@@ -34,6 +34,7 @@ Gokberk Cinbis, 2018.
 * `git-checkhash`                               Check whether the current git hash to make sure the right code-base is being used for evaluating a pre-trained model.
 * `git-find-deleted-file`                       A git shortcut.
 * `git-remember-passwords`                      Wrapper to set-up git password cache easily.
+* `gitsyncroot-nomsg-periodic`                  Periodically run gitsyncroot-nomsg in the current repository.
 
 ## System utilities
 

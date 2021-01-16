@@ -25,7 +25,7 @@ function __main__()
 {
     if [[ "$#" != 1 ]]; then
         echo 'gitsyncroot-nomsg-periodic <NumUpdatesPerHour>'
-        echo 'Periodically runs gitsyncroot-nomsg in the current repository.'
+        echo 'Periodically run gitsyncroot-nomsg in the current repository.'
         echo "Error: invalid number of input arguments ($#)"
         return 1
     else
