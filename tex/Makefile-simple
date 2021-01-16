@@ -3,25 +3,25 @@ SHELL := /bin/bash
 all:	pdf
 
 compress:
-	compresspdf-ps2pdf main.pdf main-compressed.pdf
+	compresspdf-ps2pdf paper.pdf paper-compressed.pdf
 
 bib:	pdf
-	pdflatex main.tex
-	bibtex main
-	pdflatex main.tex
-	pdflatex main.tex
+	pdflatex paper.tex
+	bibtex paper
+	pdflatex paper.tex
+	pdflatex paper.tex
 
 pdf:
-	pdflatex main.tex
-	rm -f main-compressed.pdf
+	pdflatex paper.tex
+	rm -f paper-compressed.pdf
 
 autosync:
 	gitsyncroot-nomsg-periodic 4
 
 view:
-	echo pdfview main.pdf
-	$(PDFVIEW) main.pdf
+	echo pdfview paper.pdf
+	$(PDFVIEW) paper.pdf
 
 clean:
-	rm -rf main.{pdf,aux,blg,bbl,log,out,aux}
+	rm -rf paper.{pdf,aux,blg,bbl,log,out,aux}
 
