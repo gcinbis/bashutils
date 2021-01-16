@@ -7,11 +7,11 @@ Gokberk Cinbis, 2018.
 
 ## Text and TeX utilities
 
+* `tex/`                                        Collection of Makefile and .gitignore files for LaTeX
 * `aligntable`                                  Align table columns. Particularly useful for latex tables via vim & emacs.
 * `alignassign`                                 Align assignment statements in source codes.
 * `eq2eps,eq2png`                               Generate eps, png files for LaTeX equations.
 * `strrep`                                      Find and replace patterns in stdin or files.
-* `Makefile4Latex`                              A Makefile that simplifies compiling a LaTeX source in a separate directory.
 * `unaccent`                                    Replace accented letters with ASCII ones.
 * `turkish-deasciify-selection-to-clipboard`    turkish-deasciify selection-to-clipboard.
 

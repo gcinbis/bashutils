@@ -1,0 +1,27 @@
+SHELL := /bin/bash
+
+all:	pdf
+
+compress:
+	compresspdf-ps2pdf main.pdf main-compressed.pdf
+
+bib:	pdf
+	pdflatex main.tex
+	bibtex main
+	pdflatex main.tex
+	pdflatex main.tex
+
+pdf:
+	pdflatex main.tex
+	rm -f main-compressed.pdf
+
+autosync:
+	gitsyncroot-nomsg-periodic 4
+
+view:
+	echo pdfview main.pdf
+	$(PDFVIEW) main.pdf
+
+clean:
+	rm -rf main.{pdf,aux,blg,bbl,log,out,aux}
+
