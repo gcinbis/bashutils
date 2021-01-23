@@ -38,6 +38,7 @@ Gokberk Cinbis, 2018.
 
 ## System utilities
 
+* `du-sorted`                                   Compute size of a list of files/directories, print in sorted and human readable form.
 * `mvln`                                        Move and link shortcut.
 * `strrep`                                      String find-and-replace.
 * `psapp`                                       List user processes matching to a regular expression.
