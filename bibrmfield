@@ -6,9 +6,13 @@
 import sys
 
 DEL_DEFAULTS = ['abstract','keywords','file','note','url','urldate','isbn','doi','publisher','annote']
+opts = {}
+opts['unique'] = False
+opts['nocomment'] = False
+opts['printcmd'] = False
 
 def help_and_exit():
-    print('bibrmfield [?field1] ... [?fieldn] <file>')
+    print('bibrmfield [?field1] ... [?fieldn] <additional_arguments> <file>')
     print('Remove unwanted fields from a bibtex file.')
     print('This script will create the backup <file>.bak (any existing file will be overwritten) and alter the original file using bibtool.')
     print('Each [?fieldj] is optional. ? has to be - (delete) or + (keep). "field" refers to a bibtex field.')
@@ -18,18 +22,33 @@ def help_and_exit():
     print('To keep a field "f" that is deleted by default, pass "+f". e.g., bibrmfield +abstract <file>')
     print('If a field is passed multiple times in the options, the final one determines the actions.')
     print('')
+    print('ADDITIONAL ARGUMENTS')
+    print('--unique     Comment-out repeated entries, according to Finding Double Entries poliy of bibtool (see manual). Does not always work well. (Off by default)')
+    print('--nocomment  Delete commented-out entries. (Off by default)')
+    print('--printcmd   Print-out the bibtool command before execution. (Off by default)')
+    print('')
+    print('FILE ARGUMENT')
     print('If <file> is --, stdin is used.')
     print('')
+    print('RESOURCES')
+    print('* http://www.gerd-neugebauer.de/software/TeX/BibTool/bibtool.pdf')
+    print('* http://www.gerd-neugebauer.de')
     exit(1)
 
-def parse_args(argv):
+def parse_args(argv,opts):
     if len(argv) < 2:
         help_and_exit()
     path=argv[-1] # file
     del_flds = set(DEL_DEFAULTS)
     for opt in argv[1:-1]:
         f = opt[1:]
-        if opt[0] == '-':
+        if opt == '--unique':
+            opts['unique'] = True
+        elif opt == '--nocomment':
+            opts['nocomment'] = True
+        elif opt == '--printcmd':
+            opts['printcmd'] = True
+        elif opt[0] == '-':
             del_flds.add(f) # set operation
         elif opt[0] == '+':
             if f in del_flds:
@@ -43,7 +62,7 @@ def parse_args(argv):
         exit(0)
     return path,del_flds
 
-path,del_flds = parse_args(sys.argv)
+path,del_flds = parse_args(sys.argv,opts)
 
 # first create the backup
 if path != '--':
@@ -57,9 +76,27 @@ else:
 cmd = 'bibtool'
 for f in del_flds:
     cmd += " --delete.field='{ " + f + " }'"
+
+if opts['nocomment']:
+    cmd += " --pass.comments='{off}'"
+else:
+    cmd += " --pass.comments='{on}'"
+
+if opts['unique']:
+    cmd += " -- 'check.double = on'" # (on)
+    cmd += " -- 'check.double.delete=off'" # (off) 
+    cmd += " -- 'print.deleted.entries=on'" #  (on = just comment out, do not delete)
+else:
+    cmd += " -- 'check.double=off'" # in case default options of bibtool change over time
+
 if not stdin:
     cmd += ' "' + path + '.bak" -o "' + path + '"'
-#print(cmd)
+
+# bibtool lowers key cases for historic reasons, better not manipulate them.
+cmd += " --preserve.key.case='{on}'"
+
+if opts['printcmd']:
+    print(cmd)
 
 import subprocess
 output = subprocess.check_output(cmd,shell=True)
