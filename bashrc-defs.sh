@@ -127,6 +127,18 @@ function tx() {
     fi
 }
 
+function tx-detachothers() {
+    if [[ $# = 0 ]] 
+    then
+        tmux ls
+        echo ""
+        echo "- USAGE: \"tx [session-name]\" (attach a session) | \"tx\" (list sessions)"
+        echo "Detaches other clients"
+    else
+        tmux attach -d -t "$1"
+    fi
+}
+
 function txcolours() {
     # https://superuser.com/questions/285381/how-does-the-tmux-color-palette-work/285400
     # for i in {0..255}; do printf "\x1b[38;5;${i}mcolour${i}\x1b[0m\n"; done
