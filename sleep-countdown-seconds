@@ -1,21 +1,53 @@
 #!/bin/bash 
 
+# Gokberk Cinbis, 2021
+
+# set -e --> DONT! not compatible with wait() usage below (or handle its return signal)
+
+function helpandexit() {
+    echo "USAGE: sleep-countdown-seconds [--keyinterrupt] <seconds>"
+    echo "If --keyinterrupt is given, any keypress immediately stops the countdown."
+    exit 1
+}
+
 function sleep_countdown_func() {
     local narg=$#
 
-    if [ $narg -ne 1 ]
+    if [ $narg -eq 1 ]
     then
-        echo "USAGE: sleep-countdown-seconds <seconds>"
-        return 1
+        secs=$1
+        while [ $secs -gt 0 ]; do
+            echo -ne "Wait $secs seconds...\033[0K\r"
+            sleep 1
+            : $((secs--))
+        done
+    elif [ $narg -eq 2 ]
+    then
+        # https://linuxhint.com/bash_wait_keypress/
+        secs=$2
+        if [[ "$1" == "--keyinterrupt" ]]
+        then
+            :
+        else
+            echo "sleep-countdown-seconds - unrecognized argument: $1"
+            exit 2
+        fi 
+        while [ $secs -gt 0 ]; do
+            echo -ne "Wait $secs seconds... (press any key to skip countdown) \033[0K\r"
+            command read -t 1 -n 1
+            if [ $? = 0 ] ; then
+                secs=0
+            else
+                : $((secs--))
+            fi
+        done
+    else
+        helpandexit
     fi
+    
+    echo -ne "\033[0K\r" # cleanup
+    exit 0
 
-    # source
-    secs=$1
-    while [ $secs -gt 0 ]; do
-       echo -ne "Wait $secs seconds...\033[0K\r"
-       sleep 1
-       : $((secs--))
-    done
 }
 
 # ok with multiple quoted arguments
