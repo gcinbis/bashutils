@@ -5,7 +5,7 @@
 # set -e --> DONT! not compatible with wait() usage below (or handle its return signal)
 
 function helpandexit() {
-    echo "USAGE: sleep-countdown-seconds [--keyinterrupt] <seconds>"
+    echo "USAGE: sleep-countdown [--keyinterrupt] <seconds>"
     echo "If --keyinterrupt is given, any keypress immediately stops the countdown."
     exit 1
 }
@@ -29,7 +29,7 @@ function sleep_countdown_func() {
         then
             :
         else
-            echo "sleep-countdown-seconds - unrecognized argument: $1"
+            echo "sleep-countdown - unrecognized argument: $1"
             exit 2
         fi 
         while [ $secs -gt 0 ]; do
