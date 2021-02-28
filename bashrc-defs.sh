@@ -241,22 +241,31 @@ alias tarnow='tar -czf `date +%Y-%m-%d-%H-%M-%S`.tar.gz'
 alias tarlistgz='tar -ztvf' # list contents
 alias tarlist='tar -tvf' # list contents
 
-function findgrepc() {
+function findgrep() {
     if [ $# -ne 1 ]; then
-        echo "Search all files recursively, list files matching the regexp keywork"
-        echo "findgrep keyword"
+        echo "Search all files recursively, list files and matches"
+        echo "findgrep <keyword>"
         return;
     fi
-    find . -type f -exec grep -l "$1" {} \;
+    find . -type f -exec grep -H --color "$1" {} \;
+}
+
+function findextgrep() {
+    if [ $# -ne 2 ]; then
+        echo "Search all files with extention <ext> recursively, list files and matches"
+        echo "findgrep <ext> <keyword>"
+        return;
+    fi
+    find . -type f -name "*.$1" -exec grep -H --color "$2" {} \;
 }
 
 function findgrepi() {
     if [ $# -ne 1 ]; then
         echo "findgrep <keyword>"
-        echo "Search all files recursively, list files matching the regexp keywork"
+        echo "Search all files recursively, list files and matches"
         return;
     fi
-    find . -type f -exec grep -il "$1" {} \;
+    find . -type f -exec grep -iH --color "$1" {} \;
 }
 
 # ==============================
