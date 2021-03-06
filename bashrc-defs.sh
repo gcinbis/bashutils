@@ -77,8 +77,11 @@ alias __gitsync='(git reset && git add . && git-commit-silent && echo "git pull 
 alias __gitsync-nomsg='(git reset && git add . && git-commit-silent-nomsg && echo "git-pull-nomsg & git push" && git-pull-nomsg && git push)' # pull and send
 alias gitsyncroot='(command cd `git-print-root-path` && __gitsync)' 
 alias gitsyncroot-nomsg='(command cd `git-print-root-path` && __gitsync-nomsg)' 
-alias gitdot='(git add . && git commit && git push)' # send only
-alias gitdotroot='(command cd `git-print-root-path` && git add . && git commit && git push)' # send only
+alias gitcom='(git add . && git commit)' # commit only
+alias gitcom-nomsg='(git add . && git-commit-silent-nomsg)' # commit only
+alias gitdot='(git add . && git commit && git push)' # commit & push only
+alias gitdot-nomsg='(git add . && git-commit-silent-nomsg && git push)' # commit & push only
+alias gitdotroot='(command cd `git-print-root-path` && git add . && git commit && git push)' # commit & push only 
 alias git-ls-other='git ls-files --other' # list ignored/unknown/new files
 alias git-ls-gitignore='git ls-files --ignored --exclude-standard' # list .gitignore files
 alias git-revert-file='git checkout --'
@@ -253,41 +256,11 @@ alias tarnow='tar -czf `date +%Y-%m-%d-%H-%M-%S`.tar.gz'
 alias tarlistgz='tar -ztvf' # list contents
 alias tarlist='tar -tvf' # list contents
 
-function findgrep() {
-    if [ $# -ne 1 ]; then
-        echo "Search all files recursively, list files and matches"
-        echo "findgrep <keyword>"
-        return;
-    fi
-    find . -type f -exec grep -H --color "$1" {} \;
-}
-
-function findextgrep() {
-    if [ $# -ne 2 ]; then
-        echo "Search all files with extention <ext> recursively, list files and matches"
-        echo "findgrep <ext> <keyword>"
-        return;
-    fi
-    find . -type f -name "*.$1" -exec grep -H --color "$2" {} \;
-}
-
-function findgrepi() {
-    if [ $# -ne 1 ]; then
-        echo "findgrep <keyword>"
-        echo "Search all files recursively, list files and matches"
-        return;
-    fi
-    find . -type f -exec grep -iH --color "$1" {} \;
-}
-
 # ==============================
 # grep
 # ==============================
 
 alias grep='grep --color=auto'
-
-
-
 
 # ==============================
 # rsyncauto

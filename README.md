@@ -39,16 +39,17 @@ Gokberk Cinbis, 2018.
 ## System utilities
 
 * `du-sorted`                                   Compute size of a list of files/directories, print in sorted and human readable form.
-* `mvln`                                        Move and link shortcut.
-* `strrep`                                      String find-and-replace.
-* `psapp`                                       List user processes matching to a regular expression.
-* `killapp`                                     Send KILL signal to user processes matching to a regular expression.
-* `gnome-remotedesktop-toggleprompt`            Enable/disable Gnome Shell remote desktop prompt for security purposes.
+* `findgrep`                                    Easy to use find and grep combinator.
 * `gnome-color-temperature`                     Shortcuts to alter Gnome color temperature settings.
-* `parse-path`                                  A well-designed path parsing tool.
+* `gnome-remotedesktop-toggleprompt`            Enable/disable Gnome Shell remote desktop prompt for security purposes.
+* `killapp`                                     Send KILL signal to user processes matching to a regular expression.
 * `mv-addmoddate`                               Add modification date to filename and move to a target directory.
-* `tmux-parallel-exec`                          Execute multiple commands in parallel within tmux panes & windows.
+* `mvln`                                        Move and link shortcut.
+* `parse-path`                                  A well-designed path parsing tool.
+* `psapp`                                       List user processes matching to a regular expression.
+* `strrep`                                      String find-and-replace.
 * `tmux-parallel-exec-at-dirs`                  Execute one command in parallel at multiple directories within tmux panes & windows.
+* `tmux-parallel-exec`                          Execute multiple commands in parallel within tmux panes & windows.
 
 ## File conversion
 
