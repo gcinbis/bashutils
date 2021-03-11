@@ -5,7 +5,7 @@
 
 import sys
 
-DEL_DEFAULTS = ['abstract','keywords','file','note','url','urldate','isbn','doi','publisher','annote']
+DEL_DEFAULTS = ['abstract','keywords','file','note','url','urldate','isbn','doi','publisher','annote','editor']
 opts = {}
 opts['unique'] = False
 opts['nocomment'] = False
@@ -90,7 +90,8 @@ else:
     cmd += " -- 'check.double=off'" # in case default options of bibtool change over time
 
 if not stdin:
-    cmd += ' "' + path + '.bak" -o "' + path + '"'
+    #cmd += ' "' + path + '.bak" -o "' + path + '"' -- .bib.bak extension fails in linux, for some reasons I don't know
+    cmd += ' "' + path + '" -o "' + path + '"' 
 
 # bibtool lowers key cases for historic reasons, better not manipulate them.
 cmd += " --preserve.key.case='{on}'"
