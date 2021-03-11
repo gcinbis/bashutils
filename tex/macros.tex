@@ -1,0 +1,42 @@
+% This file is partially based on macros.tex of Dr. Jakob Verbeek.
+% Gokberk Cinbis, 2021
+
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{soul}
+\usepackage[normalem]{ulem}
+
+% in-text to-do note macros
+\def\todo#1{{\color{blue}{\hl{[#1]}}}}
+\def\addcite{{\color{blue}{\hl{[cite]}} }} % no-arg citation-needed remark, usage: \addcite
+\def\tocite#1{{\color{blue}{\hl{[cite: #1]}}}} % \tocite{comments}
+\def\gc#1{{\color{red}{#1}}} % gokberk cinbis
+
+% create a file 'darkmode.tex' to invert background/text color, for vampire-friendly rendering.
+% it is a good idea to git-ignore darkmode.tex, not to interfere with co-author(s)' pdf appearances.
+% optionally override default myfg, mybg definitions within that file.
+\IfFileExists{darkmode.tex}{
+    \usepackage{pagecolor}
+    \definecolor{myfg}{gray}{0.94} 
+    \definecolor{mybg}{gray}{0}
+    \input{darkmode.tex} % myfg and mybg can be altered in darkmode.tex
+    \pagecolor{mybg}
+    \color{myfg}
+}{} 
+
+\def\Eq#1{Eq.~(\ref{eq:#1})}
+
+\usepackage{amsmath,amssymb,amsbsy,xspace}
+\makeatletter
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+
+\def\eg{\emph{e.g}\onedot} \def\Eg{\emph{E.g}\onedot}
+\def\ie{\emph{i.e}\onedot} \def\Ie{\emph{I.e}\onedot}
+\def\cf{\emph{c.f}\onedot} \def\Cf{\emph{C.f}\onedot}
+\def\etc{\emph{etc}\onedot} \def\vs{\emph{vs}\onedot} 
+\def\wrt{w.r.t\onedot} \def\dof{d.o.f\onedot}
+\def\etal{\emph{et al}\onedot}
+
+\makeatother
+

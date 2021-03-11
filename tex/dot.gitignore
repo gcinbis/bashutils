@@ -1,6 +1,7 @@
 ## Mainly from: https://github.com/site/gitignore/TeX
 
 **/__MACOSX/
+darkmode.tex
 
 ## Core latex/pdflatex auxiliary files:
 *.aux

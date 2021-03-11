@@ -7,7 +7,7 @@ Gokberk Cinbis, 2018.
 
 ## Text and TeX utilities
 
-* `tex/`                                        Collection of Makefile and .gitignore files for LaTeX
+* `tex/`                                        Collection of useful files (Makefile, .gitignore, macros) for LaTeX documents.
 * `aligntable`                                  Align table columns. Particularly useful for latex tables via vim & emacs.
 * `alignassign`                                 Align assignment statements in source codes.
 * `eq2eps,eq2png`                               Generate eps, png files for LaTeX equations.
