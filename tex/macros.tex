@@ -12,6 +12,8 @@
 \def\tocite#1{{\color{blue}{\hl{[cite: #1]}}}} % \tocite{comments}
 \def\gc#1{{\color{red}{#1}}} % gokberk cinbis
 
+\def\mypar#1{\vspace{0.15cm}\noindent{\bf #1.}}
+
 % create a file 'darkmode.tex' to invert background/text color, for vampire-friendly rendering.
 % it is a good idea to git-ignore darkmode.tex, not to interfere with co-author(s)' pdf appearances.
 % optionally override default myfg, mybg definitions within that file.
@@ -24,9 +26,19 @@
     \color{myfg}
 }{} 
 
-\def\Eq#1{Eq.~(\ref{eq:#1})}
-
 \usepackage{amsmath,amssymb,amsbsy,xspace}
+\def\Eq#1{Eq.~(\ref{eq:#1})}
+\def\R{{\rm I\!R}}                            	% the real numbers
+\def\grad#1#2{\frac{\partial #1}{\partial #2}}  % gradient
+\def\Ind#1{[\![#1]\!]}				% indicator function
+\def\Tr#1{\textrm{Tr}\left[#1\right]}                % trace
+\def\diag#1{\textrm{diag}\left( #1 \right)} % diag
+\def\Gauss#1#2#3{\mathcal{N}\left(#1 ; #2,#3\right)}   % Gaussian density
+\def\ex#1#2{\textrm{I\!E}_{#1}\!\left[#2\right]}     % expectation
+\def\half{\frac{1}{2}}              % half
+\def\<{\langle}
+\def\>{\rangle}
+
 \makeatletter
 \DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
 \def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
