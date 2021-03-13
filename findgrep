@@ -16,12 +16,13 @@ function __decrement_argi__() # just decrement argi variable
 
 function __print_help__ () 
 {
-    echo "findgrep [-i] [-e <ext>] [--debug] <regexp>"
+    echo "findgrep [-i] [-n <ptn>] [-e <ext>] [--debug] <regexp>"
     echo "Search all files recursively, list files and matches for those matching with <regexp>"
     echo ""
     echo "ARGUMENTS"
     echo "-i        Optional ignore case option."
-    echo "-e <ext>  Optional extension argument, restrict search to *.<ext>."
+    echo "-n <ptn>  Optional name argument, restrict search to file names matching <ptn>"
+    echo "-e <ext>  Optional extension argument, restrict search to *.<ext>." 
     echo "--debug   Don't execute the command, just print the final find command."
     echo "<regexp>  Regular expression."
     exit 1
@@ -47,6 +48,14 @@ function __main__()
             grepargs+=('--ignore-case')
         elif [ "${!argi}" == '--debug' ]; then  
             debug=1
+        elif [[ "${!argi}" == '-n' ]]; then  
+            __increment_argi__
+            if [ $argi -eq $narg ]; then
+                __print_help__ # we'd read <regexp> as <ext> incorrectly
+            fi
+            # doesnt work: findargs+=('-name' "\"*.${!argi}\"")
+            findargs+=('-name' "${!argi}")
+
         elif [[ "${!argi}" == '-e' ]]; then  
             __increment_argi__
             if [ $argi -eq $narg ]; then
