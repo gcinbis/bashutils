@@ -34,10 +34,14 @@
 \def\Tr#1{\textrm{Tr}\left[#1\right]}                % trace
 \def\diag#1{\textrm{diag}\left( #1 \right)} % diag
 \def\Gauss#1#2#3{\mathcal{N}\left(#1 ; #2,#3\right)}   % Gaussian density
-\def\ex#1#2{\textrm{I\!E}_{#1}\!\left[#2\right]}     % expectation
 \def\half{\frac{1}{2}}              % half
 \def\<{\langle}
 \def\>{\rangle}
+
+% expectation: https://tex.stackexchange.com/questions/56765/getting-the-expectation-symbol-to-behave-like-sum-instead-of-sigma
+\DeclareMathOperator*{\ExpectSign}{\mathbb{E}}       % expectation sign
+%\def\ex#1#2{\textrm{I\!E}_{#1}\!\left[#2\right]}   % expectation (old)
+\def\ex#1#2{\ExpectSign_{#1}\left[#2\right]}        % expectation (new)
 
 \makeatletter
 \DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
