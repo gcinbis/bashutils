@@ -12,7 +12,7 @@ opts['nocomment'] = False
 opts['printcmd'] = False
 
 def help_and_exit():
-    print('bibrmfield [?field1] ... [?fieldn] <additional_arguments> <file>')
+    print('bibrmfield [?field1] ... [?fieldn] <additional_arguments> [<file>]')
     print('Remove unwanted fields from a bibtex file.')
     print('This script will create the backup <file>.bak (any existing file will be overwritten) and alter the original file using bibtool.')
     print('Each [?fieldj] is optional. ? has to be - (delete) or + (keep). "field" refers to a bibtex field.')
@@ -23,12 +23,13 @@ def help_and_exit():
     print('If a field is passed multiple times in the options, the final one determines the actions.')
     print('')
     print('ADDITIONAL ARGUMENTS')
+    print('--help       Print help & exit')
     print('--unique     Comment-out repeated entries, according to Finding Double Entries poliy of bibtool (see manual). Does not always work well. (Off by default)')
     print('--nocomment  Delete commented-out entries. (Off by default)')
     print('--printcmd   Print-out the bibtool command before execution. (Off by default)')
     print('')
     print('FILE ARGUMENT')
-    print('If <file> is --, stdin is used.')
+    print('If <file> is -- or not provided, stdin is used.')
     print('')
     print('RESOURCES')
     print('* http://www.gerd-neugebauer.de/software/TeX/BibTool/bibtool.pdf')
@@ -36,30 +37,44 @@ def help_and_exit():
     exit(1)
 
 def parse_args(argv,opts):
-    if len(argv) < 2:
-        help_and_exit()
-    path=argv[-1] # file
+    #if len(argv) < 2:
+    #    help_and_exit()
+    path=None
+    # NO ! path=argv[-1] # file
     del_flds = set(DEL_DEFAULTS)
-    for opt in argv[1:-1]:
-        f = opt[1:]
+    arg_index = 0
+    for opt in argv[1:]:
+        arg_index += 1
         if opt == '--unique':
             opts['unique'] = True
+        elif opt == '--help':
+            help_and_exit()
         elif opt == '--nocomment':
             opts['nocomment'] = True
         elif opt == '--printcmd':
             opts['printcmd'] = True
+        elif opt == '--': # stdin, handle before "-field"
+            if arg_index < (len(argv)-1):
+                print('-- option can only be the last argument')
+                exit(2)
+            else:
+                path = '--'
         elif opt[0] == '-':
-            del_flds.add(f) # set operation
+            del_flds.add(opt[1:]) # set operation
         elif opt[0] == '+':
-            if f in del_flds:
-                del_flds.remove(f) # set operation
+            if opt[1:] in del_flds:
+                del_flds.remove(opt[1:]) # set operation
+        elif arg_index == (len(argv)-1):
+            path = opt
         else:
             print('Unrecognized option: ' + opt)
             exit(2)
-    print('These fields will be deleted: ',del_flds)
-    if len(del_flds)==0:
-        print('Nothing to do, exiting.')
-        exit(0)
+    
+    if path is None:
+        path = '--' # stdin by default
+
+    if path != '--':
+        print('These fields will be deleted: ',del_flds) # dont print in stdin 
     return path,del_flds
 
 path,del_flds = parse_args(sys.argv,opts)
@@ -102,7 +117,6 @@ if opts['printcmd']:
 import subprocess
 output = subprocess.check_output(cmd,shell=True)
 if stdin:
-    print('-------')
     print(output.decode("utf-8"))
 else:
     print('Done. Check the output file carefully.')
