@@ -69,10 +69,12 @@ function __main__()
         fi
     done
 
+    # -H filename
+    # -n line number
     if [ $debug -eq 1 ]; then
-        echo command find -L . "${findargs[@]}" -type f -exec grep -H --color "${grepargs[@]}" "$regexp" {} \;
+        echo command find -L . "${findargs[@]}" -type f -exec grep -H -n --color "${grepargs[@]}" "$regexp" {} \;
     else
-        command find -L . "${findargs[@]}" -type f -exec grep -H --color "${grepargs[@]}" "$regexp" {} \;
+        command find -L . "${findargs[@]}" -type f -exec grep -H -n --color "${grepargs[@]}" "$regexp" {} \;
     fi
     # Example simple case: command find . -type f -L -name "*.$1" -exec grep -H --color "$2" {} \;
 }

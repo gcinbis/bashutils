@@ -2,7 +2,7 @@
 
 if [ $# -ne 2 ]
 then
-    echo "Usage: video2pngs <file> <format>"
+    echo "Usage: video2images <file> <format>"
     echo "Dump all frames of a video into a folder, in png or jpeg format."
     echo "<file> is the path to the video file"
     echo "<format> shall be -png or -jpg"
