@@ -43,6 +43,10 @@
 %\def\ex#1#2{\textrm{I\!E}_{#1}\!\left[#2\right]}   % expectation (old)
 \def\ex#1#2{\ExpectSign_{#1}\left[#2\right]}        % expectation (new)
 
+% argmin, argmax
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
 \makeatletter
 \DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
 \def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}

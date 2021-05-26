@@ -8,13 +8,21 @@ function __print_help_and_exit__()
     echo "vip <pattern> [<file1> <file2> ...]"
     echo ""
     echo "Open files containing <pattern> in vim as tabs. grep is run in case-insensitive mode."
-    echo "If no filename is given, all files in the currrent directory are fed into grep (ie. *)"
+    echo "* After loading, vim is made to execute /<pattern>"
+    echo "* If no filename is given, all files in the currrent directory are fed into grep (ie. *)"
     echo ""
     echo "EXAMPLES"
     echo "* vip section"
     echo "* vip section *.tex"
     echo "* find . -name "*.tex" | xargs vip section"
     exit 1
+}
+
+reg_exp=""
+
+function __vim__()
+{
+    vim -c "/$reg_exp" -p "$@"
 }
  
 function __main__()
@@ -25,16 +33,18 @@ function __main__()
         __print_help_and_exit__
     fi
 
+    reg_exp="$1"
+
     if [ $narg -eq 1 ]
     then
-        vim -p `command grep -sil "$1" *`
+        __vim__ `command grep -sil "$reg_exp" *`
     else
         # init/set global variables
-        execargs=()
+        local execargs=()
         for (( argi=2; argi<=$narg; argi++ )); do
             execargs+=( "${!argi}" ) 
         done
-        vim -p `command grep -sil "$1" "${execargs[@]}"`
+        __vim__ `command grep -sil "$reg_exp" "${execargs[@]}"`
     fi
 }
 

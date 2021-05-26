@@ -10,6 +10,7 @@ opts = {}
 opts['unique'] = False
 opts['nocomment'] = False
 opts['printcmd'] = False
+opts['nobak'] = False
 
 def help_and_exit():
     print('bibrmfield [?field1] ... [?fieldn] <additional_arguments> [<file>]')
@@ -27,6 +28,7 @@ def help_and_exit():
     print('--unique     Comment-out repeated entries, according to Finding Double Entries poliy of bibtool (see manual). Does not always work well. (Off by default)')
     print('--nocomment  Delete commented-out entries. (Off by default)')
     print('--printcmd   Print-out the bibtool command before execution. (Off by default)')
+    print('--nobak      Delete the generated bak field at the end of the process. (Ignored if input is stdin)')      
     print('')
     print('FILE ARGUMENT')
     print('If <file> is -- or not provided, stdin is used.')
@@ -47,6 +49,8 @@ def parse_args(argv,opts):
         arg_index += 1
         if opt == '--unique':
             opts['unique'] = True
+        if opt == '--nobak':
+            opts['nobak'] = True
         elif opt == '--help':
             help_and_exit()
         elif opt == '--nocomment':
@@ -82,7 +86,8 @@ path,del_flds = parse_args(sys.argv,opts)
 # first create the backup
 if path != '--':
     from shutil import copyfile
-    copyfile(path, path + '.bak')
+    path_bak = path + '.bak'
+    copyfile(path, path_bak)
     stdin=False
 else:
     stdin=True
@@ -120,4 +125,11 @@ if stdin:
     print(output.decode("utf-8"))
 else:
     print('Done. Check the output file carefully.')
+    if opts['nobak']:
+        from os import remove
+        try:
+            remove(path_bak)
+        except OSError as e:  ## if failed, report it back to the user ##
+            print ("Error: %s - %s." % (e.filename, e.strerror))
+
 
