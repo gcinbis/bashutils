@@ -1,0 +1,116 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, 2021
+
+set -e
+
+function __increment_argi__() # just increment argi variable
+{
+    argi=$((argi+1))
+}
+
+
+function __decrement_argi__() # just decrement argi variable
+{
+    argi=$((argi-1)) 
+}
+
+
+function __help_and_exit__()
+{
+    echo "pdflatex-remote [--id <project_id>] <src.tex>"
+    echo "Compile latex project on a remote server via rsync & pdflatex. Does the following:"
+    echo "- Transfer all (only those updated) files from current folder to a temporary folder in a remote host, efficiently via rsync. "
+    echo "- Run pdflatex and bibtex once on the remote host."
+    echo "- Transfer back the resulting pdf to the local host (overwrites if file already exists)."
+    echo ""
+    echo "ARGUMENTS"
+    echo "--id <id>                    Defines the remote temporary subfolder name. Useful for avoiding clashes across projects. (Default=current folder name)"
+    echo "<src.tex>                    Replace with main"
+    echo ""
+    echo "REQUIRED ENVIRONMENT VARIABLES"
+    echo "* PDFLATEX_REMOTE_HOST       [username@]hostname (eg. myaccount@mypc.myuniversity.edu)"
+    echo ""
+    echo "OPTIONAL ENVIRONMENT VARIABLES"
+    echo "* PDFLATEX_REMOTE_SSHPORT    SSH port (default=22)"
+    echo "* PDFLATEX_REMOTE_RSYNCPATH  rsync path on remote host (default=/usr/bin/rsync)"
+    echo ""
+    echo "NOTES"
+    echo "* It can be practical to define and export environment variables within .bashrc as they are typically project-agnostic."
+    echo "* .git folder (if exists) is ignored in rsync."
+    echo "* Local src.{pdf,aux,blg,bbl,log,out,aux,dvi} files are also ignored to avoid local/remote compilation conflicts." 
+    echo "* Any file locally deleted will also be deleted on the remote server via rsync."
+    echo "* This utility is much more useful if ssh works without password, via a ssh key configuration."
+    echo ""
+    exit 1
+}
+
+function __main__()
+{
+    local narg=$#
+
+    if [ $narg -lt 1 ]
+    then
+        __help_and_exit__
+    fi
+
+    # default project id
+    local _PROJID=`basename "$PWD"`
+
+    argi=0 # argument reading index
+    for (( argi=1; argi<=$((narg-1)); argi++ )); do
+        if [[ "${!argi}" == '-id' ]]; then  
+            __increment_argi__
+            if [ $argi -eq $narg ]; then
+                __help_and_exit__ # end of arguments
+            fi
+            _PROJID="${!argi}"
+
+        else
+            command echo "Unrecognized argument: {!argi}"
+            __print_help__
+        fi
+    done
+
+    local _TEXFILE="${!narg}" # last argument
+
+    # environemnt variables with defaults
+    local _SSHPORT="${PDFLATEX_REMOTE_SSHPORT:-22}"
+    local _RSYNCPATH="${PDFLATEX_REMOTE_RSYNCPATH:-/usr/bin/rsync}"
+
+    # define target temp directory that will host a copy of the current files. note that this shall not be stochastic because
+    # each call will *update* the tarrget host files as fast as possible via rsync.
+    local _TOPATH="/tmp/pdflatex-remote/$_PROJID"
+
+    # Create the temporary folder at target host if doesn't exist already
+    echo "pdflatex-remote::Create the temporary folder at the target host, if does not exist. ($_TOPATH on $PDFLATEX_REMOTE_HOST)"
+    ssh -p "$_SSHPORT" "$PDFLATEX_REMOTE_HOST" "command mkdir -p \"$_TOPATH\"" # works with spaces well
+
+    # define rsync paths
+    local _SRCPATH="." # source path is always current directory
+    local _TEXFILE_NOEXT="${_TEXFILE/.tex/}" # eg. paper.tex -> paper
+
+    echo "pdflatex-remote::rsync source from local to remote host."
+    # --exclude: exclude .git and temporary latex files to avoid overwriting remote temporary files
+    # --filter 'protect ...': avoid deletion of temporarry pdflatex files on the remote side to continue from previous compilation
+    rsync --protect-args --progress --stats --exclude='.git/' \
+        --exclude="$_TEXFILE_NOEXT.pdf" --exclude="$_TEXFILE_NOEXT.blg" --exclude="$_TEXFILE_NOEXT.bbl" --exclude="$_TEXFILE_NOEXT.log" --exclude="$_TEXFILE_NOEXT.out" --exclude="$_TEXFILE_NOEXT.aux" --exclude="$_TEXFILE_NOEXT.dvi" --filter "protect $_TEXFILE_NOEXT.*" \
+        --delete -avzh -e "ssh -p $_SSHPORT" \
+        --chmod=Du=rwx,Dgo=rx,Fu=rw,Fog=r --rsync-path="$_RSYNCPATH" "$_SRCPATH" "$PDFLATEX_REMOTE_HOST":"$_TOPATH"
+
+    # compile remotely
+    echo "pdflatex-remote::Compile on remote host."
+    ssh -p "$_SSHPORT" "$PDFLATEX_REMOTE_HOST" "(cd \"$_TOPATH\" && ls -al && pdflatex \"$_TEXFILE\" && bibtex \"$_TEXFILE_NOEXT\")" # works with spaces well   
+
+    # transfer back 
+    echo "pdflatex-remote::Transfering back the compiled pdf file."
+    rsync --protect-args --progress -vzh -e "ssh -p $_SSHPORT" --rsync-path="$_RSYNCPATH" \
+        "$PDFLATEX_REMOTE_HOST":"$_TOPATH/$_TEXFILE_NOEXT.pdf" "$_SRCPATH"
+
+}
+
+# ok with multiple quoted arguments
+__main__ "$@"
+exit 0
+
+
+
