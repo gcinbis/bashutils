@@ -58,7 +58,7 @@ function __main__()
 
     argi=0 # argument reading index
     for (( argi=1; argi<=$((narg-1)); argi++ )); do
-        if [[ "${!argi}" == '-id' ]]; then  
+        if [[ "${!argi}" == '--id' ]]; then  
             __increment_argi__
             if [ $argi -eq $narg ]; then
                 __help_and_exit__ # end of arguments
@@ -67,7 +67,7 @@ function __main__()
 
         else
             command echo "Unrecognized argument: {!argi}"
-            __print_help__
+            __help_and_exit__
         fi
     done
 
