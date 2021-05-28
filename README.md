@@ -8,6 +8,7 @@ Gokberk Cinbis, 2018.
 ## Text and TeX utilities
 
 * `pdflatex-remote`                             Compile tex project via a remote server.
+* `vip`                                         Open files containing <pattern> in vim as tabs.
 * `tex/`                                        Collection of useful files (Makefile, .gitignore, macros) for LaTeX documents.
 * `aligntable`                                  Align table columns. Particularly useful for latex tables via vim & emacs.
 * `alignassign`                                 Align assignment statements in source codes.
