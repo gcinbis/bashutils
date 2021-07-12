@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+# Gokberk Cinbis, 2021
+
+from html.parser import HTMLParser
+import sys
+import bibtexparser
+import requests
+import re 
+import os 
+
+def help():
+    print('conf2bibtex <confname>')
+    print('Create a subdirectory called <confname>, create a list of bibtex files,')
+    print('each corresponding to a paper.')
+    print('Supported conferences: CVPR2021')
+    print('Requires:')
+    print('* pip3 install bibtexparser')
+
+def process_bibtex_entry(bibtex,url=None):
+    # 1) get paper title from bibtex 
+    # 2) add url into bibtex if url is not None
+    bib_database = bibtexparser.loads(bibtex)
+    paper_title = bib_database.entries[0]['title']
+    if url is not None:
+        bib_database.entries[0]['url']=url
+    bibtex2 = bibtexparser.dumps(bib_database)
+    return bibtex2, paper_title
+
+def title2filename(title):
+    # convert a paper's title into a proper filename
+    return re.sub("[^0-9a-zA-Z]+", "_", title)
+
+def download_conf(confname):
+    confinfo = {'confname':confname}
+    if confname=='CVPR2021':
+        confinfo['baseurl']='https://openaccess.thecvf.com'
+        confinfo['text']=requests.get(confinfo['baseurl']+'/CVPR2021?day=all', allow_redirects=True).text
+        return confinfo
+    else:
+        raise Exception('Unknown conference name: ' + confname)
+
+class CVFParser(HTMLParser): # https://docs.python.org/3/library/html.parser.html
+    def __init__(self,confinfo):
+        super().__init__()
+        self.confinfo=confinfo
+        self.inbibref=False
+        self.DEBUG=False
+        self.all_papers = []
+        self.last_pdf_url = []
+
+    def handle_starttag(self, tag, attrs):
+        if self.DEBUG:
+            print("Encountered a start tag:", tag, attrs)
+        if tag=='div' and len(attrs)>=1 and len(attrs[0])>=2 and ('bibref' in attrs[0][1]):
+            self.inbibref=True
+        elif tag=='a' and len(attrs)>=1 and len(attrs[0])>=2 and attrs[0][0]=='href' and ('_paper.pdf' in attrs[0][1]):
+            link_=attrs[0][1]
+            self.last_pdf_url=self.confinfo['baseurl']+link_
+            #self.last_filename=link_.replace('/content/CVPR2021/papers/','').replace('_CVPR_2021_paper.pdf','')
+
+    def handle_endtag(self, tag):
+        if self.DEBUG:
+            print("Encountered an end tag :", tag)
+
+    def handle_data(self, data):
+        if self.DEBUG:
+            print("Encountered some data  :", data)
+        if self.inbibref:
+            bibtex_,paper_title_ = process_bibtex_entry(data,self.last_pdf_url)
+            filename_ = title2filename(paper_title_)
+            self.all_papers.append({'bibtex':bibtex_,'filename':filename_})
+            self.inbibref=False
+
+def export_bibtex_files(all_papers,target_directory):
+    '''
+    Takes an input in the following form:
+
+        ipdb> parser.all_papers[0]['filename']
+        'Invertible_Denoising_Network_A_Light_Solution_for_Real_Noise_Removal'
+        ipdb> parser.all_papers[0]['bibtex']
+        '@inproceedings{Liu_2021_CVPR,\n author = {Liu, Yang and Qin, Zhenyue and Anwar, Saeed and Ji, Pan and Kim, Dongwoo and Caldwell, Sabrina and Gedeon, Tom},\n booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},\n month = {June},\n pages = {13365-13374},\n title = {Invertible Denoising Network: A Light Solution for Real Noise Removal},\n url = {https://openaccess.thecvf.com/content/CVPR2021/papers/Liu_Invertible_Denoising_Network_A_Light_Solution_for_Real_Noise_Removal_CVPR_2021_paper.pdf},\n year = {2021}\n}\n\n'
+
+    Creates a file for each entry in the target directory.
+    '''
+    if os.path.exists(target_directory):
+        raise Exception('Output directory %s already exists! Quiting.' % target_directory)
+    os.mkdir(target_directory)
+    for p in all_papers:
+        path_ = os.path.join(target_directory,p['filename']+'.txt')
+        print(path_)
+        with open(path_,'w') as f:
+            f.write(p['bibtex'])
+
+def main():
+    if len(sys.argv) != 2:
+        help()
+        exit(1)
+    confname = sys.argv[1]
+    print('Download & parse...')
+    confinfo = download_conf(confname)
+    parser = CVFParser(confinfo)
+    parser.feed(confinfo['text'])
+    #import ipdb; ipdb.set_trace()
+    export_bibtex_files(parser.all_papers,confname)
+
+main()
+

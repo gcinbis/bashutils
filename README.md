@@ -66,6 +66,10 @@ Gokberk Cinbis, 2018.
 
 * `zotero-find-nonlinked-attachments`           Find non-linked zotero attachments using a library export.
 
+## Academic tools
+
+* `proceedings/`                                Scripts to download/collect some conferences' bibliographies.
+
 ## Misc notes
 
 * [How to share printer from Linux to Mac](notes/LinuxToMacPrinterShare.md) 
