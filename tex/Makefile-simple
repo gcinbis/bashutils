@@ -13,6 +13,7 @@ bib:	pdf
 
 pdf:
 	pdflatex paper.tex
+	bibtex paper
 	rm -f paper-compressed.pdf
 
 autosync:
