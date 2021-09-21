@@ -105,6 +105,7 @@ function git-commit-silent-nomsg() {
 alias git-pull-nomsg='git pull --no-edit'
 alias git-log-stat='git log --stat'
 alias git-branch-ls-all='git branch --list -a -vv' # -vv is for local-remote tracking relations
+alias git-branch-ls-commitdates="git for-each-ref --color=auto --sort=committerdate refs/ --format='%(color:red) %(refname:lstrip=2) %(committerdate:short) %(color:blue) ->[%(upstream)] %(color:yellow) \"%(contents:subject)\"'"
 alias git-branch-create='git switch --create' # git switch --create <branch_name> 
 alias git-print-root-path='git rev-parse --show-toplevel'
 alias git-cd-root-path='command echo cd `git-print-root-path` && command cd `git-print-root-path`'
