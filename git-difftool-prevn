@@ -2,13 +2,15 @@
 set -e
 
 if [ $# -le 0 ]; then
-    echo "USAGE: git-difftool-prevn <PrevNum> [optional-filename]"
-    echo "Diffs to <PrevNum> previous version."
+    echo "USAGE: git-difftool-prevn <N> [optional-filename(s)]"
+    echo "Diffs to <N>th previous commit."
     exit 1 
 fi
 args=("$@")  # preserves ".." groups
 narg=${#args[@]}
-git difftool "HEAD@{$1}" ${args[@]:1:$narg}
+# old: git difftool "HEAD@{$1}" ${args[@]:1:$narg}
+echo git difftool HEAD~"$1" ${args[@]:1:$narg}
+git difftool HEAD~"$1" ${args[@]:1:$narg}
 
 
 
