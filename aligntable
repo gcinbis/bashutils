@@ -22,9 +22,10 @@ COMMON OPTIONS
 -g,--group                   Logically group rows with different number of columns. Align them independently.
                              This is very useful when dealing with things like LaTeX tables. (Default=disabled)
 --tex                        Align latex table.
-                             Equivalent to <aligntable -s "&" --group --sepwrap " " " " --nomaxif "^[ ]*[%]">
+                             Equivalent to <aligntable -s "&" --group --sepwrap " " " " -strrep "\t" "    " --nomaxif "^[ ]*[%]">
 --texboldmax                 Align latex table and make max-entries bold.
                              Equivalent to <aligntable -s "&" --group --sepwrap " " " " --maxwrap "\bf " "" 
+                                            -strrep "\t" "    "
                                             -strrep "\\bf" "" --numignore "\\\\" --numignore "\\[A-Za-z]+"
                                             --numignore "[{}]" --nomaxif "^[ ]*[%]">
 ADVANCED OPTIONS
@@ -45,6 +46,8 @@ ADVANCED OPTIONS
 --nomaxif <regexp>           Do not allow lines containing <regexp> to 
 
 Note that all string arguments are processed as "raw strings" without python-decoding.
+
+Important: TABS typically cause problem. A quick solution is to replace them before running this tool or using the --strrep option.
 
 EXAMPLES
 * A basic example:
@@ -347,6 +350,7 @@ while ai < len(sys.argv):
         separator = "&"
         groupbyncol = True
         sepwrap = [r" ",r" "]
+        strrep.append((r"\t",r"    "))
         # NO, tables become ugly! commentsign.append("%")
     elif a=='--texboldmax':
         separator = "&"
@@ -354,6 +358,7 @@ while ai < len(sys.argv):
         sepwrap = [r" ",r" "] # to replicate console argument, I use raw-strng literals here in every possible place. 
         #maxwrap = [r"\bf ",r""]
         maxwrap = [r"\textbf{",r"}"] # TODO: Add {}
+        strrep.append((r"\t",r"    "))
         strrep.append((r"\\bf",r""))
         strrep.append((r"\\textbf",r""))
         numignore.append(r"\\\\")
