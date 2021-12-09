@@ -18,6 +18,7 @@ Gokberk Cinbis, 2018.
 * `turkish-deasciify-selection-to-clipboard`    turkish-deasciify selection-to-clipboard.
 
 ## PDF utilities
+
 * `catpdf`                                      Concatenate multiple pdf files into a single one.
 * `mypdfdiff`                                   Diff two pdfs.
 * `pdf-add-header-first-page`                   Add a custom header to the first page of a pdf file.
@@ -69,6 +70,10 @@ Gokberk Cinbis, 2018.
 ## Academic tools
 
 * `proceedings/`                                Scripts to download/collect some conferences' bibliographies.
+
+## Python tools
+
+* `assert-conda`                                Verifies that the conda environment is fully active.
 
 ## Misc notes
 

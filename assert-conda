@@ -1,0 +1,109 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, 2021
+set -e
+
+verbose=0
+
+function __increment_argi__() # just increment argi variable
+{
+    argi=$((argi+1))
+}
+
+
+function __decrement_argi__() # just decrement argi variable
+{
+    argi=$((argi-1)) 
+}
+
+function __myecho__()
+{
+    if [ $verbose -eq 1 ]; then
+        echo "$@"
+    fi
+}
+
+function __print_help__ () 
+{
+    echo "assert-conda [-h] [-v]"
+    echo "Assert that the conda environment is active via PATH."
+    echo ""
+    echo "ARGUMENTS"
+    echo "-h        Print help."
+    echo "-v        Enable verbose mode."
+    echo
+    echo "EXIT VALUES"
+    echo "0         Success, conda is active."
+    echo "1         Print help / invalid argument(s)."
+    echo "2         python has not been found in the PATH."
+    echo "3         conda has not been found in the PATH."
+    echo "4         conda has been found but python does not belong to the conda directory."
+    echo ""
+    exit 1
+}
+
+function __main__()
+{
+    local narg=$#
+    local regexp="${!narg}" # last argument
+
+    # see findgrep for a more comprehensive example use of the loop below
+
+    argi=0 # argument reading index
+    for (( argi=1; argi<=$narg; argi++ )); do
+        if [ "${!argi}" == '-h' ]; then  
+            __print_help__
+        elif [ "${!argi}" == '-v' ]; then  
+            verbose=1
+        else
+            command echo "Unrecognized argument: {!argi}"
+            __print_help__
+        fi
+    done
+
+    # check python
+    set +e # forgive errors
+    which_python=`which python`
+    set -e # forbid errors
+    __myecho__ "[INFO] which python: $which_python"
+    if [ "$which_python" == "" ]; then
+        __myecho__ '[FAIL] python has *not* been found in the PATH'
+        exit 2
+    else
+        __myecho__ '[OK] python has been found in the PATH.'
+    fi
+
+    # check conda
+    set +e # forgive errors
+    which_conda=`which conda`
+    set -e # forbid errors
+    __myecho__ "[INFO] which conda: $which_conda"
+    if [ "$which_conda" == "" ]; then
+        __myecho__ '[FAIL] conda has *not* been found in the PATH'
+        exit 3
+    else
+        __myecho__ '[OK] conda has been found in the PATH.'
+    fi
+
+    # conda root
+    tmp=`dirname $which_conda`
+    conda_root=`dirname $tmp`
+    if [ $verbose -eq 1 ]; then
+        __myecho__ "[INFO] conda root: $conda_root"
+    fi
+
+    # check python is conda's python
+    tmp=${which_python/${conda_root}/}
+    if [ "$tmp" == "$which_python" ]; then
+        __myecho__ "[FAIL] python does *not* belong to the (same) conda distribution."
+        exit 4
+    else
+        __myecho__ "[OK] python belongs to the same conda distribution."
+    fi
+
+    exit 0
+}
+
+# ok with multiple quoted arguments
+__main__ "$@"
+exit 0
+
