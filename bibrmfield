@@ -11,6 +11,7 @@ opts['unique'] = False
 opts['nocomment'] = False
 opts['printcmd'] = False
 opts['nobak'] = False
+opts['stderr'] = False
 
 def help_and_exit():
     print('bibrmfield [?field1] ... [?fieldn] <additional_arguments> [<file>]')
@@ -28,6 +29,7 @@ def help_and_exit():
     print('--unique     Comment-out repeated entries, according to Finding Double Entries poliy of bibtool (see manual). Does not always work well. (Off by default)')
     print('--nocomment  Delete commented-out entries. (Off by default)')
     print('--printcmd   Print-out the bibtool command before execution. (Off by default)')
+    print('--stderr     Do not suppress stderr (suppressed by default)')
     print('--nobak      Delete the generated bak field at the end of the process. (Ignored if input is stdin)')      
     print('')
     print('FILE ARGUMENT')
@@ -51,6 +53,8 @@ def parse_args(argv,opts):
             opts['unique'] = True
         if opt == '--nobak':
             opts['nobak'] = True
+        if opt == '--stderr':
+            opts['stderr'] = True
         elif opt == '--help':
             help_and_exit()
         elif opt == '--nocomment':
@@ -120,7 +124,12 @@ if opts['printcmd']:
     print(cmd)
 
 import subprocess
-output = subprocess.check_output(cmd,shell=True)
+
+if opts['stderr']:
+    output = subprocess.check_output(cmd,shell=True)
+else:
+    output = subprocess.check_output(cmd,shell=True,stderr=subprocess.DEVNULL)
+
 if stdin:
     print(output.decode("utf-8"))
 else:
