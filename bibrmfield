@@ -5,7 +5,7 @@
 
 import sys
 
-DEL_DEFAULTS = ['abstract','keywords','file','note','url','urldate','isbn','doi','publisher','annote','editor']
+DEL_DEFAULTS = ['abstract','keywords','file','note','url','urldate','isbn','doi','publisher','annote','editor','copyright']
 opts = {}
 opts['unique'] = False
 opts['nocomment'] = False
