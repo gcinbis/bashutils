@@ -10,6 +10,8 @@ bib:	pdf
 	bibtex paper
 	pdflatex paper.tex
 	pdflatex paper.tex
+	@grep --color=auto -i warn paper.{log,blg}
+	@grep --color=auto -i error paper.{log,blg}
 
 pdf:
 	pdflatex paper.tex
