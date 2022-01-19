@@ -17,6 +17,8 @@ pdf:
 	pdflatex paper.tex
 	bibtex paper
 	rm -f paper-compressed.pdf
+	@grep --color=auto -i warn paper.{log,blg}
+	@grep --color=auto -i error paper.{log,blg}
 
 autosync:
 	gitsyncroot-nomsg-periodic 4
