@@ -1,0 +1,116 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, 2022
+set -e
+
+function __increment_argi__() # just increment argi variable
+{
+    argi=$((argi+1))
+}
+
+
+function __decrement_argi__() # just decrement argi variable
+{
+    argi=$((argi-1)) 
+}
+
+
+function __print_help__ () 
+{
+    echo "diffdir [--nogit] [--vimdiff] <path1> <path2>"
+    echo "Compare two directories recursively, with handy options."
+    echo ""
+    echo "ARGUMENTS"
+    echo "--nogit          Discard all results involving .git"
+    echo "--vimdiff        vimdiff resulting files (prompts before vimdiff)."
+    exit 1
+}
+
+function __main__()
+{
+    local narg=$#
+    local i_=$((narg-1))
+    local path1="${!i_}" # second from the last 
+    local path2="${!narg}" # the last argument
+
+    if [ $narg -lt 1 ]
+    then
+        __print_help__
+    fi
+
+    findargs=()
+    grepargs=()
+    debug=0
+    nogit=0
+    vimdiff_=0
+
+    argi=0 # argument reading index
+    for (( argi=1; argi<=$((narg-2)); argi++ )); do
+        if [ "${!argi}" == '--nogit' ]; then  
+            nogit=1
+        elif [ "${!argi}" == '--debug' ]; then  
+            debug=1
+        elif [[ "${!argi}" == '--vimdiff' ]]; then  
+            vimdiff_=1
+        #elif [[ "${!argi}" == '-e' ]]; then  
+        #    __increment_argi__
+        #    if [ $argi -eq $narg ]; then
+        #        __print_help__ # we'd read <regexp> as <ext> incorrectly
+        #    fi
+        #    # doesnt work: findargs+=('-name' "\"*.${!argi}\"")
+        #    findargs+=('-name' "*.${!argi}")
+        else
+            command echo "Unrecognized argument: ${!argi}"
+            __print_help__
+        fi
+    done
+
+    outfile=$(mktemp)
+    set +e # otherwise pipeline fails
+    if [ $nogit -eq 1 ]; then
+        command diff --recursive --brief --exclude=".git" "$path1" "$path2" > "$outfile"
+    else
+        command diff --recursive --brief "$path1" "$path2" > "$outfile"
+    fi
+    set -e
+    if [ $vimdiff_ -eq 1 ]; then
+        outfile_diffs=$(mktemp)
+        outfile_onlyins=$(mktemp)
+        tmp=$(mktemp)
+        tmp2=$(mktemp)
+        # https://stackoverflow.com/questions/5410757/how-to-delete-from-a-text-file-all-lines-that-contain-a-specific-string
+        sed '/^Only in/d' "$outfile" > "$outfile_diffs"
+        sed '/^Files /d' "$outfile" > "$outfile_onlyins"
+
+        # differing file pairs
+        sed 's/^Files /vimdiff /g' "$outfile_diffs" > "$tmp"
+        sed 's/ and / /g' "$tmp" > "$tmp2"
+        sed 's/ differ$//g' "$tmp2" > "$tmp"
+        echo "### Differing file pairs"
+        command cat "$tmp"
+
+        # Simply print one-sided files
+        cat "$tmp"
+        echo ""
+        echo "### Files that appear only in one of the two directories (not opened in vimdiff)"
+        command cat "$outfile_onlyins"
+
+        # vimdiff time
+        echo ""
+        read -p "Press enter to vimdiff each differing pair. (Ctrl-C to exit) " # ask before as it is quite annoying when the # is very large
+        source "$tmp"
+
+        # clean up 
+        command rm -f "$outfile_onlyins" "$outfile_diffs" "$tmp" "$tmp2"
+    else
+        # simply print diff output
+        command cat "$outfile"
+    fi
+    # clean up
+    command rm -f "$outfile"
+
+}
+
+# ok with multiple quoted arguments
+__main__ "$@"
+exit 0
+

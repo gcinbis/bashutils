@@ -248,11 +248,6 @@ export KMP_DUPLICATE_LIB_OK=true
 alias find='find -L'
 alias find_symlinks='find -P -type l'
 
-# compare directories diffdir path1 path2
-alias diffdir='diff --recursive --brief'
-# alternatively:
-# find <directory> -name "*.*" > xargs ls -al 
-
 # archive
 alias tarnow='tar -czf `date +%Y-%m-%d-%H-%M-%S`.tar.gz'
 alias tarlistgz='tar -ztvf' # list contents
