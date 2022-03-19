@@ -21,7 +21,7 @@ function __print_help__ ()
     echo ""
     echo "ARGUMENTS"
     echo "--nogit          Discard all results involving .git"
-    echo "--vimdiff        vimdiff resulting files (prompts before vimdiff)."
+    echo "--vim,-vimdiff   vimdiff resulting files (prompts before vimdiff)."
     exit 1
 }
 
@@ -32,7 +32,7 @@ function __main__()
     local path1="${!i_}" # second from the last 
     local path2="${!narg}" # the last argument
 
-    if [ $narg -lt 1 ]
+    if [ $narg -lt 2 ]
     then
         __print_help__
     fi
@@ -47,8 +47,12 @@ function __main__()
     for (( argi=1; argi<=$((narg-2)); argi++ )); do
         if [ "${!argi}" == '--nogit' ]; then  
             nogit=1
+        elif [ "${!argi}" == '--help' ]; then  
+            __print_help__
         elif [ "${!argi}" == '--debug' ]; then  
             debug=1
+        elif [[ "${!argi}" == '--vim' ]]; then  
+            vimdiff_=1
         elif [[ "${!argi}" == '--vimdiff' ]]; then  
             vimdiff_=1
         #elif [[ "${!argi}" == '-e' ]]; then  
