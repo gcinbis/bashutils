@@ -22,6 +22,7 @@ function __print_help__ ()
     echo "ARGUMENTS"
     echo "--nogit          Discard all results involving .git"
     echo "--vim,-vimdiff   vimdiff resulting files (prompts before vimdiff)."
+    # HIDDEN ARGUMENT: --debug
     exit 1
 }
 
@@ -68,6 +69,10 @@ function __main__()
         fi
     done
 
+    # check if folders exist
+    [ ! -d "$path1" ] && echo "$path1 does not exist or not a directory." && exit 2
+    [ ! -d "$path2" ] && echo "$path2 does not exist or not a directory." && exit 2
+
     outfile=$(mktemp)
     set +e # otherwise pipeline fails
     if [ $nogit -eq 1 ]; then
@@ -82,26 +87,43 @@ function __main__()
         tmp=$(mktemp)
         tmp2=$(mktemp)
         # https://stackoverflow.com/questions/5410757/how-to-delete-from-a-text-file-all-lines-that-contain-a-specific-string
-        sed '/^Only in/d' "$outfile" > "$outfile_diffs"
-        sed '/^Files /d' "$outfile" > "$outfile_onlyins"
+        command sed '/^Only in/d' "$outfile" > "$outfile_diffs"
+        command sed '/^Files /d' "$outfile" > "$outfile_onlyins"
 
         # differing file pairs
-        sed 's/^Files /vimdiff /g' "$outfile_diffs" > "$tmp"
-        sed 's/ and / /g' "$tmp" > "$tmp2"
-        sed 's/ differ$//g' "$tmp2" > "$tmp"
-        echo "### Differing file pairs"
+        command sed 's/^Files /vimdiff /g' "$outfile_diffs" > "$tmp"
+        command sed 's/ and / /g' "$tmp" > "$tmp2"
+        command sed 's/ differ$//g' "$tmp2" > "$tmp"
+        command echo "### Differing file pairs"
         command cat "$tmp"
 
         # Simply print one-sided files
-        cat "$tmp"
-        echo ""
-        echo "### Files that appear only in one of the two directories (not opened in vimdiff)"
+        command echo ""
+        command echo "### Files that appear only in one of the two directories (not opened in vimdiff)"
         command cat "$outfile_onlyins"
 
+        # Create the final script: add "set -e" so that :cquit in vim stops the comparisons
+        # todo: errtrace / catch :cquit exit and notify
+        command echo "!/bin/bash" > "$tmp2"
+        command echo "set -e" >> "$tmp2"
+        command cat "$tmp" >> "$tmp2"
+        command chmod 700 "$tmp2"
+
+        if [ $debug -eq 1 ]; then
+            command echo "==== FINAL SCRIPT TO BE EXECUTED ====" 
+            command cat "$tmp2" 
+        fi
+
         # vimdiff time
-        echo ""
-        read -p "Press enter to vimdiff each differing pair. (Ctrl-C to exit) " # ask before as it is quite annoying when the # is very large
-        source "$tmp"
+        command echo ""
+        command read -p "Do you want to vimdiff each differing pair? (*** Use :cquit to stop diffs ***) [y/n]: " -n 1 -r # ask before as it is quite annoying when the # is very large
+        if [[ $REPLY =~ ^[Yy]$ ]]
+        then
+            "$tmp2" # run the script
+        else
+            command echo ""
+            command echo "Cancelled."
+        fi
 
         # clean up 
         command rm -f "$outfile_onlyins" "$outfile_diffs" "$tmp" "$tmp2"
