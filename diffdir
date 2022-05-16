@@ -136,6 +136,11 @@ function __main__()
 
 }
 
+if [ $# -lt 2 ] # avoid segfault on macos
+then
+    __print_help__
+fi
+
 # ok with multiple quoted arguments
 __main__ "$@"
 exit 0
