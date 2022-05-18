@@ -1,11 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import sys
 import re
-import exceptions
 
 def helpandexit():
-    print r'''
+    print(r'''
 Aligns lines read from stdin by adding/removing spaces such that columns are
 aligned.  In the input text, two columns must be separated by the <separator>.The
 locations of the columns are determined automatically such that the separators are
@@ -62,7 +61,7 @@ EXAMPLES
 SEE alignassign 
 
 R. Gokberk Cinbis, March 2013
-    '''
+    ''')
     sys.exit()
 
 '''
@@ -87,7 +86,7 @@ def separate_lines(prog,lines):
     prevs = [None] * nline
     prevorglens = [None] * nline
     seps  = [None] * nline
-    for li in xrange(0,nline):
+    for li in range(nline):
         l = lines[li]
         m = prog.search(l)
         if m:
@@ -105,7 +104,7 @@ def separate_lines(prog,lines):
 def get_num_col(prog,lines):
     ncol = [0] * len(lines)
     # fails unless we have a very smart regexp: ncol[li] = len( prog.findall(lines[li]) ) + 1
-    for li in xrange(0,len(lines)):
+    for li in range(len(lines)):
         l = lines[li]
         while True:
             m = prog.search(l)
@@ -147,7 +146,7 @@ def txt2nums(txts,numignore,is_nowrap_line):
     nums    = [None] * len(txts)
     starts  = [None] * len(txts)
     ends    = [None] * len(txts)
-    for li in xrange(0,len(txts)):
+    for li in range(len(txts)):
         orgtxt = txts[li]
 
         # check if the line should be ignored.
@@ -217,7 +216,7 @@ def applywrap(prevs,opt,optwrap,numignore,is_nowrap_line):
 # if i-th line should be ignored from the process, then sets outlines[i]=lines[i] and lines[i]=''
 def ignore_lines(lines,outlines,commentsign):
     nline = len(lines)
-    for j in xrange(0,nline):
+    for j in range(nline):
         x = lines[j].lstrip()
         for cs in commentsign:
             if x.startswith(cs):
@@ -246,7 +245,7 @@ def processgroup(prog,separator,sepwrap,maxwrap,minwrap,lines,atleastfirst,numig
         applywrap(prevs,'min',minwrap,numignore,[False] * nline)
 
         # add separator wrappers
-        for j in xrange(0,nline):
+        for j in range(nline):
             if seps[j]==None:
                 seps[j]=''
             else:
@@ -256,12 +255,12 @@ def processgroup(prog,separator,sepwrap,maxwrap,minwrap,lines,atleastfirst,numig
         maxprevlen = max([len(x) for x in prevs])
         maxseplen = max([len(x) for x in seps]) # sep=None if unavaible. 
         if atleastfirst: # first occurrence of the column is allowed to override this, if denotes a larger spacing
-            for j in xrange(0,nline):
+            for j in range(nline):
                 if seps[j]!=None:
                     maxprevlen = max(maxprevlen,prevorglens[j])
                     break
 
-        for j in xrange(0,nline):
+        for j in range(nline):
             nspace_before = maxprevlen-len(prevs[j])
             nspace_after  = maxseplen-len(seps[j])
 
@@ -275,7 +274,7 @@ def apply_strrep(strrep,lines):
     for x in strrep:
         p = re.compile(x[0])
         txt = x[1]
-        for li in xrange(0,len(lines)):
+        for li in range(len(lines)):
             lines[li] = p.sub(txt,lines[li])
 
 # main process function
@@ -293,12 +292,12 @@ def process(separator,sepwrap,maxwrap,minwrap,groupbyncol,atleastfirst,strrep,nu
         for ncol in unq_ncols:
             lineind = []
             curlines = []
-            for j in xrange(0,len(lines)):
+            for j in range(len(lines)):
                 if ncols[j]==ncol:
                     lineind.append(j)
                     curlines.append(lines[j])
             curlines = processgroup(prog,separator,sepwrap,maxwrap,minwrap,curlines,atleastfirst,numignore,commentsign,nomaxif)
-            for j in xrange(0,len(lineind)):
+            for j in range(len(lineind)):
                 lines[lineind[j]] = curlines[j]
     else:
         lines = processgroup(prog,separator,sepwrap,maxwrap,minwrap,lines,atleastfirst,numignore,commentsign,nomaxif)
@@ -311,7 +310,7 @@ def process(separator,sepwrap,maxwrap,minwrap,groupbyncol,atleastfirst,strrep,nu
 # get the i-th argument
 def getarg(argi):
     if argi >= len(sys.argv):
-        print 'incomplete argument list'
+        print('incomplete argument list')
         helpandexit()
     return sys.argv[argi]
 
@@ -385,7 +384,7 @@ while ai < len(sys.argv):
         commentsign.append(getarg(ai+1))
         ai += 1
     else: 
-        print 'unrecognized argument!'
+        print('unrecognized argument!')
         helpandexit()
     ai += 1
 
