@@ -26,7 +26,7 @@ grep_args=""
 
 function __vim__()
 {
-    if [ -z "$@" ]
+    if [ $# -eq 0 ]
     then
         echo "vip::No file matching $reg_exp has been found."
     else
