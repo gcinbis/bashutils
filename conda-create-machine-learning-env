@@ -1,0 +1,96 @@
+#!/bin/bash
+# Gokberk Cinbis, 2022, based on many Anaconda hints that I learned from
+# the people I've worked with, as well as several online sources.
+
+set -e 
+
+function conda-create-machine-learning-env() {
+    # Note: it is typically better to install all libs at creation, rather than adding them step-by-step later
+    echo "This is a utility script for creating an ML-oriented conda environment with mainstream packages."
+    echo "Installation starts at the end of all questions, following a final confirmation."
+    echo "Environment variables expected by this script: "
+    echo "  Required: ANACONDA_ROOT (\"$ANACONDA_ROOT\")"
+    echo "  Optional: ANACONDA_DEFAULT_ENV (\"$ANACONDA_DEFAULT_ENV\")"
+    echo ""
+
+    # new env name
+    local new_env_name
+    if [ -z "$ANACONDA_DEFAULT_ENV" ]; then # if not available
+        read -p "Enter the new environment name, avoid spaces: " new_env_name
+    else
+        read -p "Enter the new environment name, avoid spaces (Press enter to copy ANACONDA_DEFAULT_ENV, which is \"$ANACONDA_DEFAULT_ENV\"): " new_env_name
+        if [ -z $new_env_name ]; then
+            new_env_name="$ANACONDA_DEFAULT_ENV"
+        fi
+    fi
+    if [ -z $new_env_name ]; then
+        echo "Environment name cannot be empty!"
+        return 1
+    fi
+
+    prm=()
+
+    # core libs
+    prm+=("scipy" "matplotlib" "jupyterlab" "dill" "ipython" "scikit-learn" "scikit-image" "pandas" "numpy" "pillow" "cython" "tqdm" "pip" "pyyaml" "seaborn" "dill")
+    echo ""
+    echo "The list of main libraries: ${prm[@]}"
+    echo ""
+
+    # opencv
+    # old: prm+=("python=3.7")     # at some point opencv seemed to not work with 3.8. 
+    prm+=("opencv")
+
+    # pytorch
+    local yn_ans
+    local cuda_ans
+    read -p "Include pytorch, torchvision, torchaudio? (Y/N): " yn_ans 
+    if [[ $yn_ans == [yY] ]]; then
+        prm+=("pytorch" "torchvision" "torchaudio")
+        read -p "cudatookit version? (write 0 for no cuda) (see pytorch.org): " cuda_ans 
+        if [ -z $cuda_ans ]; then
+            echo "cudatookit version cannot be empty!"
+            return 1
+        fi
+        if [[ $cuda_ans == [0] ]]; then
+            echo "no cuda"
+        else
+            echo "cudatookit=$cuda_ans"
+            prm+=("cudatoolkit=$cuda_ans")
+        fi
+    else
+        echo "Skipping pytorch libraries"
+    fi
+
+    # additional libs
+    local addlibs=("imgaug" "tensorboard" "pycocotools" "jupyter_console" "ipywidgets" "mypy" "captum" "natsort" "rich" "shapely" "pdbpp" "ipdb")
+    echo ""
+    echo "Additional libs: ${addlibs[@]}"
+    read -p "Include these additional libs? (Y/N): " yn_ans 
+    if [[ $yn_ans == [yY] ]]; then
+        prm=( "${prm[@]}" "${addlibs[@]}" )
+    else
+        echo "Skipping the additional libraries"
+    fi
+
+    echo "--- FINAL COMMAND ---"
+    echo "conda create --name $new_env_name --channel pytorch --channel conda-forge --channel defaults ${prm[@]}"
+    local final_ans
+    read -p "Start the creation process? (Y/N): " final_ans && [[ $final_ans == [yY] || $final_ans == [yY][eE][sS] ]] || return 1
+
+    # activate conda
+    echo "==> Updating the anaconda base..."
+    conda-custom-activate "$ANACONDA_ROOT"
+    conda update -n base -c defaults conda
+
+    echo "==> Creating the environment $new_env_name"
+    conda create --name $new_env_name --channel pytorch --channel conda-forge --channel defaults "${prm[@]}"
+    conda activate $new_env_name
+
+    echo "==> If you want to delete this environment, run the following:"
+    echo "rm -rf $ANACONDA_ROOT/envs/$new_env_name"
+    echo "conda clean --all # clean caches and unused packages in all environments (do this if environement creation fails)"
+}
+
+conda-create-machine-learning-env
+
+
