@@ -77,6 +77,8 @@ Gokberk Cinbis, 2018.
 ## Python tools
 
 * `assert-conda`                                Verifies that the conda environment is fully active.
+* `conda-custom-active`                         Activate a conda installation.
+* `conda-create-machine-learning-env`           A utility script for creating an ML-oriented conda environment with mainstream packages.
 
 ## Misc notes
 
