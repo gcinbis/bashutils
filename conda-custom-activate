@@ -1,29 +1,71 @@
-#!/bin/bash
-set -e
+# NO ---> !/bin/bash
+# Gokberk Cinbis, 2022. Contents adapted from the lines added by anaconda installer into .bashrc
 
-function conda-custom-activate() {
-    # adapted from the lines added by anaconda installer into .bashrc
+function ___conda_custom_activate___() {
+
     if [ $# -ne 1 ]; then
-        echo Incorret number of arguments. Pass only the path to anaconda root.
-        echo EXAMPLE: conda-custom-activate $HOME/anaconda3
+        echo "source conda-custom-activate <ANACONDA_ROOT>"
+        echo ""
+        echo "IMPORTANT: Since this script need to alter the environment variable, it must be source\'d."
+        echo ""
+        echo "EXAMPLE: source conda-custom-activate $HOME/anaconda3"
         return;
     fi
 
+    if [ -z "$1" ]; then
+        echo "source conda-custom-activate <ANACONDA_ROOT>"
+        echo "<ANACONDA_ROOT> cannot be empty!"
+        echo ""
+        echo "IMPORTANT: Since this script need to alter the environment variable, it must be source\'d."
+        echo ""
+        echo "EXAMPLE: source conda-custom-activate $HOME/anaconda3"
+        return 1;
+    fi
+
+    if [ ! -d "$1" ] && [ ! -h "$1" ]; then
+        echo "source conda-custom-activate <ANACONDA_ROOT>"
+        echo "<ANACONDA_ROOT>=$1 should be the path of the conda root!"
+        echo ""
+        echo "IMPORTANT: Since this script need to alter the environment variable, it must be source\'d."
+        echo ""
+        echo "EXAMPLE: source conda-custom-activate $HOME/anaconda3"
+        return 1;
+    fi
+
+    # temporarily disable set -e if enabled in __conda_setup call below returns non-zero value
+    local __errexit
+    if [ -o errexit ]; then __errexit=1; else __errexit=0; fi 
+    set +e
+
     # >>> conda initialize >>>
     # !! Contents within this block are managed by 'conda init' !!
-    __conda_setup="$("$1/bin/conda" 'shell.bash' 'hook' 2> /dev/null)"
-    if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
+    local __conda_setup="$("$1/bin/conda" 'shell.bash' 'hook' 2> /dev/null)"
+    local __conda_setup_ret=$?
+
+    # re-set "set -e"
+    if [[ $__errexit == 1 ]]; then set -e; fi # restore errexit status
+
+    # setup conda
+    if [ $__conda_setup_ret -eq 0 ]; then
+        eval "$__conda_setup"
     else
-    if [ -f "$1/etc/profile.d/conda.sh" ]; then
-        . "$1/etc/profile.d/conda.sh"
-    else
-        export PATH="$1/bin:$PATH"
+        if [ -f "$1/etc/profile.d/conda.sh" ]; then
+            . "$1/etc/profile.d/conda.sh"
+        else
+            export PATH="$1/bin:$PATH"
+        fi
     fi
+
+    set +e
+    assert-conda -s
+    if [[ $? != 0 ]]; then
+        if [[ $__errexit == 1 ]]; then set -e; fi # restore errexit status
+        echo "conda could not be activated, make sure ANACONDA_ROOT=$1 is the correct anaconda root path"
+        return 2
     fi
-    unset __conda_setup
-    # <<< conda initialize <<<
+
+    # no need: unset __conda_setup
 }
 
-conda-custom-activate
+___conda_custom_activate___ "$@"
 
