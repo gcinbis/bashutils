@@ -83,6 +83,8 @@ Gokberk Cinbis, 2018.
 ## Misc notes
 
 * [How to share printer from Linux to Mac](notes/LinuxToMacPrinterShare.md) 
+* [How to customize page color in a shared latex repository](notes/LatexPageColors.md) 
+* [How to compress data folder into a multi-part archive](notes/CompressDataMultipart.md)
 
 
 
