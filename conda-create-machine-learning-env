@@ -4,6 +4,8 @@
 
 set -e 
 
+USE_MAMBA=1
+
 function conda-create-machine-learning-env() {
     # Note: it is typically better to install all libs at creation, rather than adding them step-by-step later
     echo "This is a utility script for creating an ML-oriented conda environment with mainstream packages."
@@ -11,6 +13,10 @@ function conda-create-machine-learning-env() {
     echo "Environment variables expected by this script: "
     echo "  Required: ANACONDA_ROOT (\"$ANACONDA_ROOT\")"
     echo "  Optional: ANACONDA_DEFAULT_ENV (\"$ANACONDA_DEFAULT_ENV\")"
+    echo ""
+    echo ""
+    echo ""
+    echo "*** To avoid conflicts: miniconda tends to behave nicer than anaconda in practice. ***"
     echo ""
 
     # new env name
@@ -46,16 +52,19 @@ function conda-create-machine-learning-env() {
     read -p "Include pytorch, torchvision, torchaudio? (Y/N): " yn_ans 
     if [[ $yn_ans == [yY] ]]; then
         prm+=("pytorch" "torchvision" "torchaudio")
-        read -p "cudatookit version? (write 0 for no cuda) (see pytorch.org): " cuda_ans 
+        read -p "cuda tookit version? (write 0 for no cuda) (see pytorch.org): " cuda_ans 
         if [ -z $cuda_ans ]; then
-            echo "cudatookit version cannot be empty!"
+            echo "cuda tookit version cannot be empty!"
             return 1
         fi
         if [[ $cuda_ans == [0] ]]; then
             echo "no cuda"
         else
-            echo "cudatookit=$cuda_ans"
-            prm+=("cudatoolkit=$cuda_ans")
+            # -- old --
+            # echo "cudatookit=$cuda_ans"
+            # prm+=("cudatoolkit=$cuda_ans")
+            echo "pytorch-cuda=$cuda_ans"
+            prm+=("pytorch-cuda=$cuda_ans")
         fi
     else
         echo "Skipping pytorch libraries"
@@ -73,7 +82,6 @@ function conda-create-machine-learning-env() {
     fi
 
     echo "--- FINAL COMMAND ---"
-    echo "conda create --name $new_env_name --channel pytorch --channel conda-forge --channel defaults ${prm[@]}"
     local final_ans
     read -p "Start the creation process? (Y/N): " final_ans && [[ $final_ans == [yY] || $final_ans == [yY][eE][sS] ]] || return 1
 
@@ -89,9 +97,17 @@ function conda-create-machine-learning-env() {
     echo conda update -n base -c defaults conda
     conda update -n base -c defaults conda
 
+    # install mamba if needed
+    local mngbin='conda'
+    if [[ $USE_MAMBA == 1 ]]; then
+        echo "==> Using mamba for quicker installation"
+        conda install mamba -n base -c conda-forge
+        mngbin='mamba'
+    fi
+
     echo "==> Creating the environment $new_env_name"
-    echo conda create --name $new_env_name --channel pytorch --channel conda-forge --channel defaults "${prm[@]}"
-    conda create --name $new_env_name --channel pytorch --channel conda-forge --channel defaults "${prm[@]}"
+    echo $mngbin create --name $new_env_name --channel pytorch --channel nvidia --channel conda-forge --channel defaults "${prm[@]}"
+    $mngbin create --name $new_env_name --channel pytorch --channel nvidia --channel conda-forge --channel defaults "${prm[@]}"
     echo conda activate $new_env_name
     conda activate $new_env_name
 
