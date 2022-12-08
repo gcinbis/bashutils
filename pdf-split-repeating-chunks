@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+# Gokberk Cinbis, 2022
+
+import sys
+import subprocess
+import os
+
+def helpandexit():
+    print('''
+pdf-split-repeating-chunks <input_pdf> <output_folder> <s1> <s2> ... <sN>
+
+Split a given pdf into repeating chunks of length s1, s2, .... where each repeating block has the length s1+s2+...+sN.
+
+For example: pdf-split-repeating-chunks input.pdf /tmp 4 1 2
+
+would create the following three pdf files:
+
+/tmp/input_chunks1.pdf => contains pages 1,2,3,4,8,9,10,11,15,16,17,18,...
+/tmp/input_chunks2.pdf => contains pages 5,12,19,...
+/tmp/input_chunks3.pdf => contains pages 6,7,13,14,20,21
+
+* The output folder must pre-exist. Files may be overwritten, therefore, be careful!
+    ''')
+    exit(1)
+
+def parse_args(argv):
+    ''' parse args '''
+    # example input: ['./pdf-split-repeating-chunks', 'input.pdf', '/tmp', '4', '1', '2']
+    opts = {}
+    if len(argv) < 3:
+        help_and_exit()
+    return argv[1],argv[2],[int(x) for x in argv[3:]]
+
+def get_num_input_pdf_len(input_file):
+    # fails: output = subprocess.check_output(F'gs -q -dNODISPLAY -c "({input_file}) (r) file runpdfbegin pdfpagecount = quit"',shell=True)
+    output = subprocess.check_output(F'pdftk "{input_file}" dump_data output | grep -i NumberOfPages',shell=True)
+    npages = int(output.decode('utf-8').replace('NumberOfPages: ','').strip())
+    print(F'pdf-split-repeating-chunks::Number of pages = {npages}')
+    return npages
+
+# -sPageList="2,4,9-11,12-13,5-8"
+
+# -- main code --
+input_file,output_dir,chunks = parse_args(sys.argv)
+npages = get_num_input_pdf_len(input_file)
+
+repeat_block_size=sum(chunks)
+if npages % repeat_block_size != 0:
+    print(F'pdf-split-repeating-chunks::[***WARNING***] sum of chunk sizes ({repeat_block_size}) and the input pdf length are not compatible, the outputs will be partial')
+    # do not panic and exit as this is valuable for analysing the output and seeing where the missing pages are
+
+startindex=1
+for j in range(len(chunks)):
+    print(F'pdf-split-repeating-chunks::Creating the chunk {j+1} / ' + str(len(chunks)))
+    _out = output_dir + '/' + os.path.basename(input_file).replace('.pdf','') + '_chunks' + str(j+1) + '.pdf'
+    _lst = []
+    for repeat_k in range(int(npages / repeat_block_size)+1): # +1 is for the partial list
+        _lst.extend([repeat_block_size*repeat_k+startindex+pagei for pagei in range(chunks[j])])
+    _lst = ''.join([str(x)+',' for x in _lst if x <= npages])[:-1] # clip overflow pages, convert to string list
+    _cmd = F'gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -sPageList={_lst} -sOutputFile="{_out}" "{input_file}"'
+    print(_cmd)
+    output = subprocess.check_output(_cmd,shell=True)
+    startindex+=chunks[j]
+

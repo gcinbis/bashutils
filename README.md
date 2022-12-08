@@ -26,6 +26,7 @@ Gokberk Cinbis, 2018.
 * `pdf-add-header-all-pages`                    Add a custom header to all pages of a pdf file.
 * `pdf-add-header-first-page`                   Add a custom header to the first page of a pdf file.
 * `pdf-print-two-sided`                         Create and succesively open two pdf files to simplify manual double-sided printing.
+* `pdf-split-repeating-chunks`                  Split pdf into repeating fixed-length chunks.
 
 ## Web utilities
 
