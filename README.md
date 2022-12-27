@@ -87,6 +87,7 @@ Gokberk Cinbis, 2018.
 * [How to customize page color in a shared latex repository](notes/LatexPageColors.md) 
 * [How to compress data folder into a multi-part archive](notes/CompressDataMultipart.md)
 * [Matplotlib notes](notes/MatplotlibNotes.md)
+* [VSCode notes](notes/VSCode.md)
 
 
 
