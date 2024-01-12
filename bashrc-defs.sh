@@ -349,5 +349,33 @@ function lsencfs() {
 
 alias jupyter2py='jupyter nbconvert --to script' # jupyter2py <file.ipynb>
 
+alias conda-envs='conda info --envs' # list environments
+
+function condamode() { 
+    # Depends on
+    #   - ANACONDA_ROOT (required)
+    #   - ANACONDA_DEFAULT_ENV (optional)
+    echo source conda-custom-activate "\$ANACONDA_ROOT"
+    echo "      \$ANACONDA_ROOT=$ANACONDA_ROOT"
+    source conda-custom-activate "$ANACONDA_ROOT"
+    if [[ "$ANACONDA_DEFAULT_ENV" != "" ]]; then
+        echo conda activate "\$ANACONDA_DEFAULT_ENV"
+        echo "      \$ANACONDA_DEFAULT_ENV=$ANACONDA_DEFAULT_ENV"
+        conda activate "$ANACONDA_DEFAULT_ENV"
+    else
+        echo "No special environment activated (ANACONDA_DEFAULT_ENV=\"$ANACONDA_DEFAULT_ENV\")".
+    fi
+    assert-conda # verify python 
+
+    # Important: when this is done directly .bashrc, $HOME/.local/bin ends up high in the list. (See: https://github.com/conda/conda/issues/9392)
+    #            $HOME/.local/bin may shadow ipython, etc. due to system's pip install of ipython.
+    # Even this doesn't fix the problem: export PATH="$ANACONDA_ROOT"/bin:$PATH
+    #            since bash adds .local/bin AFTER .bashrc's load.
+    # TLDR; avoid activating conda within .bashrc
+}
+
+# python - just write breakpoint() to enter ipdb (https://stackoverflow.com/questions/67453706/difference-between-ipdb-and-pdb)
+# Also useful: from ipdb import launch_ipdb_on_exception
+export PYTHONBREAKPOINT=ipdb.set_trace   # or ipdb.sset_trace 
 
 
