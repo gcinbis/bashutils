@@ -353,13 +353,18 @@ alias jupyter2py='jupyter nbconvert --to script' # jupyter2py <file.ipynb>
 alias conda-envs='conda info --envs' # list environments
 
 function condamode() { 
+    # condamode [<env-name>]
+    # 
     # Depends on
     #   - ANACONDA_ROOT (required)
     #   - ANACONDA_DEFAULT_ENV (optional)
     echo source conda-custom-activate "\$ANACONDA_ROOT"
     echo "      \$ANACONDA_ROOT=$ANACONDA_ROOT"
     source conda-custom-activate "$ANACONDA_ROOT"
-    if [[ "$ANACONDA_DEFAULT_ENV" != "" ]]; then
+    if [[ "$1" != "" ]]; then
+        echo conda activate "$1"
+        conda activate "$1"
+    elif [[ "$ANACONDA_DEFAULT_ENV" != "" ]]; then
         echo conda activate "\$ANACONDA_DEFAULT_ENV"
         echo "      \$ANACONDA_DEFAULT_ENV=$ANACONDA_DEFAULT_ENV"
         conda activate "$ANACONDA_DEFAULT_ENV"
