@@ -4,6 +4,8 @@ set -e
 
 verbose=0
 silent=0
+assert_pip=0
+assert_pip3=0
 
 function __increment_argi__() # just increment argi variable
 {
@@ -39,6 +41,8 @@ function __print_help__ ()
     echo "-h        Print help."
     echo "-v        Enable verbose mode (enables info messages)."
     echo "-s        Enable silent mode (disables failure messages)."
+    echo "--pip     Additionally assert that pip belongs to the conda environment."
+    echo "--pip3    Additionally assert that pip3 belongs to the conda environment."
     echo
     echo "EXIT VALUES"
     echo "0         Success, conda is active."
@@ -46,6 +50,7 @@ function __print_help__ ()
     echo "2         python has not been found in the PATH."
     echo "3         conda has not been found in the PATH."
     echo "4         conda has been found but python does not belong to the conda directory."
+    echo "5         conda has been found but pip or pip3 does not belong to the conda directory."
     echo ""
     exit 1
 }
@@ -65,6 +70,10 @@ function __main__()
             verbose=1
         elif [ "${!argi}" == '-s' ]; then  
             silent=1
+        elif [ "${!argi}" == '--pip' ]; then  
+            assert_pip=1
+        elif [ "${!argi}" == '--pip3' ]; then  
+            assert_pip3=1
         else
             command echo "Unrecognized argument: {!argi}"
             __print_help__
@@ -109,6 +118,30 @@ function __main__()
         exit 4
     else
         __myinfo__ "python belongs to the same conda distribution."
+    fi
+
+    # check pip
+    if [ $assert_pip -eq 1 ]; then
+        which_pip=`which pip`
+        tmp=${which_pip/${conda_root}/}
+        if [ "$tmp" == "$which_pip" ]; then
+            __myfail__ "pip does *not* belong to the (same) conda distribution."
+            exit 5
+        else
+            __myinfo__ "pip belongs to the same conda distribution."
+        fi
+    fi
+
+    # check pip3
+    if [ $assert_pip3 -eq 1 ]; then
+        which_pip3=`which pip3`
+        tmp=${which_pip3/${conda_root}/}
+        if [ "$tmp" == "$which_pip3" ]; then
+            __myfail__ "pip3 does *not* belong to the (same) conda distribution."
+            exit 5
+        else
+            __myinfo__ "pip3 belongs to the same conda distribution."
+        fi
     fi
 
     exit 0
