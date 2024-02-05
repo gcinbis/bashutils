@@ -20,12 +20,13 @@ function __print_help__ ()
     echo "Search all files recursively, list files and matches for those matching with <regexp>"
     echo ""
     echo "ARGUMENTS"
-    echo "-i          Optional ignore case option."
-    echo "-n <ptn>    Optional name argument, restrict search to file names matching <ptn>"
-    echo "-e <ext>    Optional extension argument, restrict search to *.<ext>." 
-    echo "--list-only List matching files only, not their content."
-    echo "--debug     Don't execute the command, just print the final find command."
-    echo "<regexp>    Regular expression."
+    echo "-i           Optional ignore case option."
+    echo "-n <ptn>     Optional name argument, restrict search to file names matching <ptn>"
+    echo "-e <ext>     Optional extension argument, restrict search to *.<ext>." 
+    echo "--list-only  List matching files only, not their content."
+    echo "--non-binary Ignores binary files (uses grep's --binary-files=without-match option), can speed up."
+    echo "--debug      Don't execute the command, just print the final find command."
+    echo "<regexp>     Regular expression."
     exit 1
 }
 
@@ -64,6 +65,9 @@ function __main__()
             fi
             # doesnt work: findargs+=('-name' "\"*.${!argi}\"")
             findargs+=('-name' "*.${!argi}")
+        elif [[ "${!argi}" == '--non-binary' ]]; then  
+            __increment_argi__
+            grepargs+=("--binary-files=without-match")
         elif [[ "${!argi}" == '--list-only' ]]; then  
             __increment_argi__
             grepargs+=("--files-with-matches")
