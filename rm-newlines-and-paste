@@ -1,0 +1,36 @@
+#!/bin/bash 
+#
+# TODO
+#
+# On LINUX:
+#   Reads the selection clipboard, removes all new lines, and then saves it into main clipboard.
+#
+#   To setup a shortcut in Ubuntu, use the following steps:
+#   - Create keyboard shortcut with name: turkish-deasciify-selection-to-clipboard
+#   - Command: path-to/bashutils/turkish-deasciify-selection-to-clipboard
+#   - Shortcut: Something that you can easily paste afterwards. My suggestion: Ctrl-F8.
+#
+# On MAC:
+#   Reads the main clipboard, removes all newlines, and then saves it into main clipboard.
+#
+# Gokberk Cinbis, Feb 2024
+
+unameOut="$(\uname -s)"
+case "${unameOut}" in
+    Linux*)     machine=Linux;;
+    Darwin*)    machine=Mac;;
+    CYGWIN*)    machine=Cygwin;;
+    MINGW*)     machine=MinGw;;
+    *)          machine="UNKNOWN:${unameOut}"
+esac
+#echo ${machine}
+
+if [[ $machine == "Mac" ]]; then
+    pbpaste | sed -z 's/\n/ /g' | pbcopy # NOT YET TESTED XXX
+    echo "Clipboard contents have been updated to remove all newlines."
+else
+    xsel -op | sed -z 's/\n/ /g' | xsel -ib
+    echo "Clipboard contents have been updated to remove all newlines."
+fi
+
+
