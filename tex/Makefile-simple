@@ -14,6 +14,13 @@ bib:	pdf
 	@grep --color=auto -i error paper.{log,blg} || true 
 	# || true is to ignore message possibly returned by grep when there isn't a match, on macos
 
+diff: 
+	latexdiff paper_previous_version.tex paper.tex > revision_diff.tex
+	pdflatex revision_diff.tex
+	bibtex revision_diff
+	pdflatex revision_diff.tex
+	pdflatex revision_diff.tex
+
 pdf:
 	pdflatex paper.tex
 	bibtex paper

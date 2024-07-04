@@ -1,67 +1,135 @@
 #!/bin/bash
 set -e
 
-if [[ $# < 1 ]]; then
-    echo "DESCRIPTION"
-    echo "Kill user processes matching to a regular expression. A confirmation is prompted before sending KILL signal."
-    echo "USAGE"
-    echo "killapp regexp"
+function __print_help_and_exit__()
+{
+    command echo "DESCRIPTION"
+    command echo "Kill user processes matching to a regular expression. A confirmation is prompted before sending KILL signal."
+    command echo
+    command echo "USAGE"
+    command echo "killapp [--noprompt] [--echo-only] <regexp>"
+    command echo
+    command echo "  --force      Skip the confirmation prompt."
+    command echo "  --echo-only  Kill signal commands are printed but not executed."
+    command echo 
+    command echo "grep is run in case-sensitive mode only if <pattern> contains at least one upper letter (similar to smartcase in vim)."
     exit 1
-fi
+}
 
-grep_cmd="grep -i \"$*\"" # add \"...\" to support patterns with spaces
-out=`ps aux | grep "^$USER" | eval $grep_cmd` 
-grep_no_quote="grep -i $*"
 
-# https://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
-SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+# global variables
+reg_exp=""
+mode_force=0
+mode_echo_only=0
 
-kill_pids=""
+function __kill__()
+{
+    local grep_args=""
 
-lines_exclude='== EXCLUDED =='
-lines_include='== INCLUDED =='
-any_exclude=0
-any_include=0
-
-# loop over lines
-while read -r line; do
-    arr=($line)
-    pid="${arr[1]}"
-    exclude=0
-    if [[ $line == *${SCRIPTPATH}* ]]; then exclude=1; fi # if line contains the current script
-    if [[ $line == *${grep_no_quote}* ]]; then exclude=1; fi # if line contains the grep command
-    if [[ $$ == $pid ]]; then exclude=1; fi # if equal to pid of the script
-    if [[ $$ == $grep_pid ]]; then exclude=1; fi # if equal to pid of the grep subprocess
-    if [[ $exclude == 1 ]]; then
-        lines_exclude="$lines_exclude\n$line"
-        any_exclude=1
-    else 
-        lines_include="$lines_include\n$line"
-        kill_pids="$kill_pids $pid"
-        any_include=1
-    fi
-done <<< "$out"
-
-if [[ $any_exclude == 1 ]]; then
-    echo -e "$lines_exclude"
-    echo
-fi
-
-if [[ $any_include == 1 ]]; then
-    echo -e "$lines_include"
-    echo
-    echo kill -s KILL $kill_pids
-    read -p "Are you sure? [y/n] " -n 1 -r # https://stackoverflow.com/questions/1885525/how-do-i-prompt-a-user-for-confirmation-in-bash-script
-    echo    # (optional) move to a new line
-    if [[ $REPLY =~ ^[Yy]$ ]]
+    # check reg_exp contains upper letter
+    if [[ "$reg_exp" =~ [[:upper:]] ]]
     then
-        kill -s KILL $kill_pids
-        echo KILLED
+        #echo "reg_exp contains upper letter(s), case-sensitive mode."
+        grep_args=""
     else
-        echo Cancelled.
+        #echo "reg_exp does not contain an upper letter, case-insensitive mode."
+        grep_args="-i"
     fi
-else
-    echo "No matching process."
-fi
+
+    out=`command ps aux | command grep "^$USER" | command grep $grep_args "$reg_exp"` 
+    echo command grep $grep_args "$reg_exp" 
+    command ps aux | command grep "^$USER" | command grep $grep_args "$reg_exp" 
+    grep_no_quote="grep $grep_args $reg_exp"
+
+    # https://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
+    SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+
+    kill_pids=""
+
+    lines_exclude='== EXCLUDED =='
+    lines_include='== INCLUDED =='
+    any_exclude=0
+    any_include=0
+
+    # loop over lines
+    while read -r line; do
+        arr=($line)
+        pid="${arr[1]}"
+        exclude=0
+        if [[ $line == *${SCRIPTPATH}* ]]; then exclude=1; fi # if line contains the current script
+        if [[ $line == *${grep_no_quote}* ]]; then exclude=1; fi # if line contains the grep command
+        if [[ $$ == $pid ]]; then exclude=1; fi # if equal to pid of the script
+        if [[ $$ == $grep_pid ]]; then exclude=1; fi # if equal to pid of the grep subprocess
+        if [[ $exclude == 1 ]]; then
+            lines_exclude="$lines_exclude\n$line"
+            any_exclude=1
+        else 
+            lines_include="$lines_include\n$line"
+            kill_pids="$kill_pids $pid"
+            any_include=1
+        fi
+    done <<< "$out"
+
+    if [[ $any_exclude == 1 ]]; then
+        command echo -e "$lines_exclude"
+        command echo
+    fi
+
+    if [[ $any_include == 1 ]]; then
+        command echo -e "$lines_include"
+        command echo
+        command echo command kill -s KILL $kill_pids
+        if [ $mode_echo_only -eq 0 ]; then
+            if [ $mode_force -eq 0 ]; then
+                read -p "Are you sure? [y/n] " -n 1 -r # https://stackoverflow.com/questions/1885525/how-do-i-prompt-a-user-for-confirmation-in-bash-script
+                command echo    # (optional) move to a new line
+                if [[ $REPLY =~ ^[Yy]$ ]]
+                then
+                    command kill -s KILL $kill_pids
+                    command echo KILLED
+                else
+                    command echo Cancelled.
+                fi
+            else
+                command kill -s KILL $kill_pids
+                command echo KILLED
+            fi
+        else
+            command echo "(No kill signal was sent due to --echo-only)"
+        fi
+    else
+        command echo "No matching process."
+    fi
+}
+
+function __main__()
+{
+    local narg=$#
+    if [ $narg -eq 0 ]
+    then
+        __print_help_and_exit__
+    fi
+
+    # go over the options
+    local execargs=()
+    for (( argi=1; argi<$narg; argi++ )); do
+        if [ "${!argi}" == "--force" ]; then
+            mode_force=1
+        elif [ "${!argi}" == "--echo-only" ]; then
+            mode_echo_only=1
+        else
+            command echo "Unrecognized option: ${!argi}"
+            command echo ""
+            __print_help_and_exit__
+        fi
+    done
+    reg_exp="${!narg}"
+    __kill__
+}
+
+
+
+# ok with multiple quoted arguments
+__main__ "$@"
 
 
