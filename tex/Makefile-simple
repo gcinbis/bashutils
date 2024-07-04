@@ -28,6 +28,9 @@ view:
 	echo pdfview paper.pdf
 	$(PDFVIEW) paper.pdf
 
+view-chrome: # no auto-refresh but darn good
+	open -na "Google Chrome" --args --new-tab "file://${PWD}/paper.pdf" # MacOS. TODO: Linux variant.
+
 clean:
 	rm -rf paper.{pdf,aux,blg,bbl,log,out,aux,brf}
 
