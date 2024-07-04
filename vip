@@ -8,7 +8,7 @@ function __print_help_and_exit__()
     echo "vip <pattern> [<file1> <file2> ...]"
     echo ""
     echo "Open files containing <pattern> in vim as tabs."
-    echo "* grep is run in case-sensitive mode only if <patter> contains at least one upper letter (similar to smartcase in vim)."
+    echo "* grep is run in case-sensitive mode only if <pattern> contains at least one upper letter (similar to smartcase in vim)."
     echo "* After loading, vim is made to execute /<pattern>"
     echo "* If no filename is given, all files in the currrent directory are fed into grep (ie. *)"
     echo ""
