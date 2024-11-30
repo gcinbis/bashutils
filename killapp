@@ -11,6 +11,8 @@ function __print_help_and_exit__()
     command echo
     command echo "  --force      Skip the confirmation prompt."
     command echo "  --echo-only  Kill signal commands are printed but not executed."
+    command echo "  --all-users  Don't filter processes by $USER. May need sudo to actually send KILL."
+    command echo "  --sudo       Send KILL signal with sudo."
     command echo 
     command echo "grep is run in case-sensitive mode only if <pattern> contains at least one upper letter (similar to smartcase in vim)."
     exit 1
@@ -21,6 +23,20 @@ function __print_help_and_exit__()
 reg_exp=""
 mode_force=0
 mode_echo_only=0
+mode_all_users=0
+mode_sudo=0
+kill_pids=""
+
+function __send_kill__()
+{
+    if [ $mode_sudo -eq 0 ]; then
+        command kill -s KILL $kill_pids
+        command echo KILLED
+    else
+        command sudo kill -s KILL $kill_pids
+        command echo KILLED
+    fi
+}
 
 function __kill__()
 {
@@ -36,15 +52,19 @@ function __kill__()
         grep_args="-i"
     fi
 
-    out=`command ps aux | command grep "^$USER" | command grep $grep_args "$reg_exp"` 
-    echo command grep $grep_args "$reg_exp" 
-    command ps aux | command grep "^$USER" | command grep $grep_args "$reg_exp" 
+    if [ $mode_all_users -eq 0 ]; then
+        out=`command ps aux | command grep "^$USER" | command grep $grep_args "$reg_exp"` 
+        echo command grep $grep_args "$reg_exp" 
+        command ps aux | command grep "^$USER" | command grep $grep_args "$reg_exp" 
+    else
+        out=`command ps aux | command grep $grep_args "$reg_exp"` 
+        echo command grep $grep_args "$reg_exp" 
+        command ps aux | command grep $grep_args "$reg_exp" 
+    fi
     grep_no_quote="grep $grep_args $reg_exp"
 
     # https://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
     SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
-
-    kill_pids=""
 
     lines_exclude='== EXCLUDED =='
     lines_include='== INCLUDED =='
@@ -85,14 +105,12 @@ function __kill__()
                 command echo    # (optional) move to a new line
                 if [[ $REPLY =~ ^[Yy]$ ]]
                 then
-                    command kill -s KILL $kill_pids
-                    command echo KILLED
+                    __send_kill__
                 else
                     command echo Cancelled.
                 fi
             else
-                command kill -s KILL $kill_pids
-                command echo KILLED
+                __send_kill__
             fi
         else
             command echo "(No kill signal was sent due to --echo-only)"
@@ -117,6 +135,10 @@ function __main__()
             mode_force=1
         elif [ "${!argi}" == "--echo-only" ]; then
             mode_echo_only=1
+        elif [ "${!argi}" == "--all-users" ]; then
+            mode_all_users=1
+        elif [ "${!argi}" == "--sudo" ]; then
+            mode_sudo=1
         else
             command echo "Unrecognized option: ${!argi}"
             command echo ""
