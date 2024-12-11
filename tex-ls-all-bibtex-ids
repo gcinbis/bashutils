@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+#
+# Gokberk Cinbis & ChatGPT. 2024.
+
+import re
+import argparse
+
+def extract_citation_keys(tex_file):
+    """Extract citation keys from a .tex file."""
+    citation_pattern = re.compile(r'\\cite[t|p]?\{(.*?)\}')
+    with open(tex_file, 'r') as file:
+        content = file.read()
+    # Find all citations and split by commas in case of multiple keys
+    citations = citation_pattern.findall(content)
+    citation_keys = {key.strip() for group in citations for key in group.split(',')}
+    return citation_keys
+
+
+def main():
+    parser = argparse.ArgumentParser(description="List all used BibTeX entry IDs in a .tex file.")
+    parser.add_argument("tex_file", help="Path to the .tex file.")
+
+    args = parser.parse_args()
+
+    # Extract citation keys from the .tex file
+    citation_keys = extract_citation_keys(args.tex_file)
+
+    # Print the list of citation keys
+    for key in sorted(citation_keys):
+        print(key)
+
+
+if __name__ == "__main__":
+    main()
+
