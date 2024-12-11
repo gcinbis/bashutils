@@ -18,7 +18,11 @@ set -e
         return 1
     fi
 
-    cmd="gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=\"$out\"" 
+    # versions:
+    # cmd="gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile=\"$out\"" 
+    # cmd="gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sOutputFile=\"$out\"" 
+    # cmd="gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEmbedAllFonts=true -dSubsetFonts=false -dCompatibilityLevel=1.4 -dPDFSETTINGS=/prepress -sOutputFile=\"$out\"" 
+    cmd="gs -q -sPAPERSIZE=letter -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEmbedAllFonts=true -dSubsetFonts=false -dPDFSETTINGS=/prepress -sOutputFile=\"$out\"" 
 
     for (( i = 1 ; i < $narg; i++ ))
     do

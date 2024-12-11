@@ -1,19 +1,26 @@
 #!/bin/bash 
 #
-# TODO
-#
-# On LINUX:
+# On LINUX (Gnome):
 #   Reads the selection clipboard, removes all new lines, and then saves it into main clipboard.
+#   To setup a shortcut in Gnome:
+#       - Keyboard > Keyboard Shortcuts > <path-to>/bashutils/rm-newlines-and-paste
+#       - Set shortcut to "Ctrl+Alt+V" (see keyup below for clear the conflict)
 #
-#   To setup a shortcut in Ubuntu, use the following steps:
-#   - Create keyboard shortcut with name: turkish-deasciify-selection-to-clipboard
-#   - Command: path-to/bashutils/turkish-deasciify-selection-to-clipboard
-#   - Shortcut: Something that you can easily paste afterwards. My suggestion: Ctrl-F8.
+#   If it fails, check Gnome logs: journalctl -f
 #
 # On MAC:
-#   Reads the main clipboard, removes all newlines, and then saves it into main clipboard.
+#   It is much better to do this by:
+#       - Creating a Shortcuts entry that gets clipboard, replaces \n chars, updates clipboard, and
+#       finally runs an applescript that does 
+#           tell application "System Events"
+#               keystroke "v" using {command down}
+#           end tell
+#       - Set "Use as Quick Action" -> Services Menu -> Run with a shortcut of choice (I prefer Ctrl+Cmd+V).
+#       - Give app-specific accessibility permissions.
 #
-# Gokberk Cinbis, Feb 2024
+# ChatGPT & Gokberk Cinbis, Dec 2024
+
+# [TODO] wayland support
 
 unameOut="$(\uname -s)"
 case "${unameOut}" in
@@ -26,11 +33,16 @@ esac
 #echo ${machine}
 
 if [[ $machine == "Mac" ]]; then
-    pbpaste | sed -z 's/\n/ /g' | pbcopy # NOT YET TESTED XXX
+    pbpaste | sed -z 's/\n/ /g' | pbcopy # not yet tested but setting up a "Shortcuts" solution is much better anyways.
     echo "Clipboard contents have been updated to remove all newlines."
 else
-    xsel -op | sed -z 's/\n/ /g' | xsel -ib
-    echo "Clipboard contents have been updated to remove all newlines."
+    #xsel -op | sed -z 's/\n/ /g' | xsel -ib
+    xclip -o -selection clipboard | tr -d '\n' | xclip -selection clipboard
+    # echo "Clipboard contents have been updated to remove all newlines."
+    # Doesn't work: xdotool key ctrl+v
+    # Doesn't work: xdotool key --clearmodifiers ctrl+v
+    xdotool keyup ctrl+alt+v key ctrl+v # assuming ctrl+alt+v shortcut
+    # keyup trick is from https://askubuntu.com/questions/1332788/xdotool-does-not-work-with-gnome-keyboard-shortcuts
 fi
 
 
