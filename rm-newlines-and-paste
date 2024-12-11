@@ -41,7 +41,7 @@ else
     # echo "Clipboard contents have been updated to remove all newlines."
     # Doesn't work: xdotool key ctrl+v
     # Doesn't work: xdotool key --clearmodifiers ctrl+v
-    xdotool keyup ctrl+alt+v key ctrl+v # assuming ctrl+alt+v shortcut
+    xdotool keyup ctrl+alt+v sleep 0.2 key ctrl+v # assuming ctrl+alt+v shortcut
     # keyup trick is from https://askubuntu.com/questions/1332788/xdotool-does-not-work-with-gnome-keyboard-shortcuts
 fi
 
