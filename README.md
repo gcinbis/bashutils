@@ -42,6 +42,7 @@ Gokberk Cinbis, 2018.
 * `git-uniqueid`                                Generate a unique id for the current source code.
 * `git-writehash`                               Write git hash into a file.
 * `gitsyncroot-nomsg-periodic`                  Periodically run gitsyncroot-nomsg in the current repository.
+* `gitpull-periodic`                            Periodically run "git pull" in the current repository.
 
 ## System utilities
 

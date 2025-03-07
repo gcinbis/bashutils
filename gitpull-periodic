@@ -1,0 +1,43 @@
+#!/bin/bash
+# Author: Gokberk Cinbis, Mar 2025 
+
+# set -e --> dont do this since (i) incompatible with wait() [needs special handling] and (ii) breaks down the script in case of temp I/O errors
+shopt -s expand_aliases
+
+function __main__()
+{
+    if [[ "$#" != 1 ]]; then
+        echo 'gitpull-periodic <NumUpdatesPerHour>'
+        echo 'Periodically run git pull in the current repository.'
+        echo "Error: invalid number of input arguments ($#)"
+        return 1
+    else
+        let sleep_seconds=3600/$1
+        echo "Running gitpull-periodic at $PWD" 
+        while true; do 
+            git pull
+            last_time="$(command date -u +%s)"
+            echo "Running gitpull-periodic at $PWD" 
+            echo "" # readability
+            printf "Last update: "
+            date
+            echo "Running $1 times per hour, every $sleep_seconds seconds."
+            while true; do
+                # Simpler alternative: command sleep 10 
+                command read -t 10 -n 1 # sleep n seconds for polling (suggested=10)
+                if [ $? = 0 ] ; then
+                    break
+                fi
+                cur_time="$(command date -u +%s)"
+                delta="$(($cur_time-$last_time))"
+                if [ "$delta" -ge $sleep_seconds ]; then break; fi # time to update
+                remain="$(($sleep_seconds-$delta))"
+                command printf "Next run in %6d seconds (press a key to start immediately)\r" "$remain"
+            done
+        done
+    fi
+}
+
+# ok with multiple quoted arguments
+__main__ "$@"
+
