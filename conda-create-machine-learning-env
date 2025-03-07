@@ -50,8 +50,12 @@ function conda-create-machine-learning-env() {
     local yn_ans
     local cuda_ans
     read -p "Include pytorch, torchvision, torchaudio? (Y/N): " yn_ans 
+    local torch_install=0
+    local torch_whl_url=""
     if [[ $yn_ans == [yY] ]]; then
-        prm+=("pytorch" "torchvision" "torchaudio")
+        # Starting from 2.6.0, pip3 should be used to install prm+=("pytorch" "torchvision" "torchaudio")
+        torch_install=1
+
         read -p "cuda tookit version? (write 0 for no cuda) (see pytorch.org): " cuda_ans 
         if [ -z $cuda_ans ]; then
             echo "cuda tookit version cannot be empty!"
@@ -60,11 +64,10 @@ function conda-create-machine-learning-env() {
         if [[ $cuda_ans == [0] ]]; then
             echo "no cuda"
         else
-            # -- old --
-            # echo "cudatookit=$cuda_ans"
-            # prm+=("cudatoolkit=$cuda_ans")
             echo "pytorch-cuda=$cuda_ans"
-            prm+=("pytorch-cuda=$cuda_ans")
+            # OLD (Before 2.6.0): prm+=("pytorch-cuda=$cuda_ans")
+            torch_whl_url="https://download.pytorch.org/whl/cu${cuda_ans//[. ]}"
+            echo "--> index-url for pip: $torch_whl_url"
         fi
     else
         echo "Skipping pytorch libraries"
@@ -105,11 +108,19 @@ function conda-create-machine-learning-env() {
         mngbin='mamba'
     fi
 
+    # Starting from 2.6.0, pytorch channel is no longer supported.
+
     echo "==> Creating the environment $new_env_name"
-    echo $mngbin create --name $new_env_name --channel pytorch --channel nvidia --channel conda-forge --channel defaults "${prm[@]}"
-    $mngbin create --name $new_env_name --channel pytorch --channel nvidia --channel conda-forge --channel defaults "${prm[@]}"
+    echo $mngbin create --name $new_env_name --channel nvidia --channel conda-forge --channel defaults "${prm[@]}"
+    $mngbin create --name $new_env_name --channel nvidia --channel conda-forge --channel defaults "${prm[@]}"
     echo conda activate $new_env_name
     conda activate $new_env_name
+
+    # Start pip install
+    if [[ $torch_install == 1 ]]; then
+        echo "==> pip3 based installs (pytorch, etc)"
+        pip3 install torch torchvision torchaudio --index-url "$torch_whl_url"
+    fi
 
     echo "==> If you want to delete this environment, run the following:"
     echo "rm -rf $ANACONDA_ROOT/envs/$new_env_name"
