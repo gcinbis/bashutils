@@ -1,0 +1,12 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =1
+let g:netrw_dirhist_1='/Users/gcinbis/.vim'
+let g:netrw_dirhist_0='/Users/gcinbis/projects/utils/home-config/config-files/.vim/autoload'
+let g:netrw_dirhist_9='/Users/gcinbis/.vim'
+let g:netrw_dirhist_8='/Users/gcinbis/projects/utils/home-config/config-files/.vnc'
+let g:netrw_dirhist_7='/Users/gcinbis/projects/DL4SAR-chapter/2024-dl4sar-book-chapter-private-work/unused/title2bib/title2bib'
+let g:netrw_dirhist_6='/Users/gcinbis/projects/DL4SAR-chapter/2024-dl4sar-book-chapter-private-work/unused/title2bib'
+let g:netrw_dirhist_5='/Users/gcinbis/projects/weakly_supervised_histopathology/figures'
+let g:netrw_dirhist_4='/Users/gcinbis/projects/119E597-FinalRaporu/sonuc-raporu/Rapor4/ip1-sinan-thesis-draft'
+let g:netrw_dirhist_3='/Users/gcinbis/projects/docs/reports/119E597/Report-Final'
+let g:netrw_dirhist_2='/Users/gcinbis/projects/119E597-Gelisme-Raporu-EkSure'
