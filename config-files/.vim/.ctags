@@ -1,0 +1,3 @@
+--langdef=matlab
+--langmap=matlab:.m
+--regex-matlab=/^[ \t]*function([] A-Za-z0-9,_[]+=[ ]?|[ ]+)([^.(]+).*$/\2/f,function/
