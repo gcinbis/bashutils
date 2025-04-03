@@ -1,0 +1,193 @@
+# Gokberk Cinbis' .screenrc file, based on many other screenrc files available online.
+#
+# -- BASIC USAGE -- 
+# CTRL-w        escape command.
+# CTRL-w c      create new tab
+# CTRL-w d      detach from the current screen
+# Ctrl-e        switch to left tab (conflicts with end of line...)
+# Ctrl-t        switch to right tab
+#
+# For nested screens use ctrl-w multiple times to control inner screens.
+#
+# Use :number to move screens
+
+# For a complete list of available commands, see http://bit.ly/jLtj
+
+# Message to display in the status line when activity is detected in a
+# monitored window.
+activity              "activity in %n (%t) [%w:%s]~"
+
+# Detach session on hangup instead of terminating screen completely.
+autodetach            on              # default: on
+
+# When a bell character is sent to a background window, screen displays a
+# notification in the message line. The notification message can be re-defined
+# by this command.
+bell_msg              "bell     in %n (%t) [%w:%s]~"
+
+# This command controls the display of the window captions. Normally a caption
+# is only used if more than one window is shown on the display.
+caption               always          "%{= kw}%?%-Lw%?%{+b kw}%n*%t%f %?(%u)%?%{= kw}%?%+Lw%?"
+
+# Select line break behavior for copying.
+crlf                  off             # default: off
+
+# Select default utmp logging behavior.
+#deflogin              off             # default: on
+
+# Set default lines of scrollback.
+defscrollback         3000            # default: 100
+
+# If set to 'on', screen will append to the 'hardcopy.n' files created by the
+# command hardcopy; otherwise, these files are overwritten each time.
+hardcopy_append       on              # default: off
+
+# This command configures the use and emulation of the terminal's hardstatus
+# line. The type 'lastline' will reserve the last line of the display for the
+# hardstatus. Prepending the word 'always' will force screen to use the type
+# even if the terminal supports a hardstatus line.
+hardstatus            alwayslastline  "%{+b kr}[ %H ] %{ky} Load: %l %-=%{kb} %c  %Y.%m.%d"
+msgwait               15
+
+# Set message displayed on pow_detach (when HUP is sent to screen's parent
+# process).
+pow_detach_msg        "BYE"
+
+# Set the default program for new windows.
+#shell                 bash         # midnightcommander fails with this.
+shell                /bin/bash
+
+# Default timeout to trigger an inactivity notify.
+silencewait           30              # default: 30
+
+# Change text highlighting. See http://bit.ly/11RDGZ
+sorendition           gK
+
+# Do NOT display copyright notice on startup.
+startup_message       off             # default: on
+
+# Set $TERM for new windows. I have more luck with 'linux' than Terminal's
+# default 'xterm-color' (^H problems). Comment out to use the default.
+#term                  linux
+# cinbis: If I use "linux", rather than "xterm", vi does show the right colors.
+# Also, one way is to use declare -x TERM="xterm".
+
+# Tweak termcap, terminfo, and termcapinfo  entries for best performance.
+termcap               linux           'AF=\E[3%dm:AB=\E[4%dm'
+termcap               xterm-color     'AF=\E[3%dm:AB=\E[4%dm'
+terminfo              linux           'AF=\E[3%p1%dm:AB=\E[4%p1%dm'
+terminfo              xterm-color     'AF=\E[3%p1%dm:AB=\E[4%p1%dm'
+term                  xterm
+
+# Allow xterm / Terminal scrollbars to access the scrollback buffer. This
+# enables the behavior you'd expect, instead of losing the content that scrolls
+# out of the window.
+#termcapinfo           linux           ti@:te@
+#termcapinfo           xterm-color     ti@:te@
+termcapinfo linux|xterm|rxvt|xterm-color ti@:te@:XT 
+
+# for scrolling, URxvt, the following in Xdefaults is useful:
+# URxvt*secondaryScroll: true
+
+# to clear the screen on contents on exit from vim
+altscreen             on
+
+# Use visual bell instead of audio bell.
+vbell                 off              # default: ???
+
+# Message to be displayed when the visual bell is triggered.
+vbell_msg             " *beep* "
+
+# problematic mappings (see http://www.physics.udel.edu/~watson/scen103/ascii.html)
+#   ctrl H <-> backspace
+#   ctrl M <-> enter
+#   ctrl I <-> tab
+# change tabs (^ --> CTRL)
+# good option 1: ^N and ^L.
+# good option 2: ^J and ^K. 
+# good option 3: ^E and ^T. (ctrl E conflicts with end of line but not too bad.)
+# good option 4: ^D and ^G --> now used in vim.
+bindkey ^E prev # ctrl E
+bindkey ^T next # ctrl T
+
+# shift tab to change split created via "ctrl-w S". can delete a split using "ctrl-w X" (harmless)
+# used vim to discover code, ctrl-v shift-tab gives it.
+bindkey [Z focus
+
+# I prefer ctrl-w instead of ctrl-a
+escape 
+
+# escape+ctrl-c is very dangerous. instead use escape+c to creat new screen tab.
+bind c screen
+
+
+
+# ------- NOTES AND OBSOLETE STUFF BELOW -------
+#
+# NOTE All .bashrc is read before running the commands of the shortcuts below.
+#      No need to restart screen to read new .bashrc
+#      Use :source .screenrc to re-read this file.
+#
+# To clear the history:
+# bind / eval "scrollback 0" "clear" "scrollback 15000nd -c demo1 0 select 10
+#
+# ARCHIVAL NOTES
+#   change inner windows of a second level screen session:
+#   unnice: bindkey -k k6 eval "meta" "stuff 'p'" # for previous inner window  
+#   unnice: bindkey -k k7 eval "meta" "stuff 'n'" # for next inner window  
+#   a nicer option is ctrl-f8,f9:
+#   bindkey [19;5~ eval "meta" "stuff 'p'" # for previous inner window (gnome terminal,ctrl)
+#   bindkey [20;5~ eval "meta" "stuff 'n'" # for next inner window (gnome terminal,trl)
+#   however I could not make vim send keys for ctrl, even after playing with its key/terminal options.
+#
+# THE FOLLOWING WORKS BUT NOW OBSOLETE (UNUSUED)
+# a working solution is shift-f8,f9. (putty & gnome terminal ([19;2~) sends different signals.)
+# bindkey [19;2~ eval "meta" "stuff 'p'" # for previous inner window (gnome,shift)
+# bindkey [20;2~ eval "meta" "stuff 'n'" # for next inner window (gnome,shift)
+# bindkey [32~ eval "meta" "stuff 'p'" # for previous inner window (putty,shift)
+# bindkey [33~ eval "meta" "stuff 'n'" # for next inner window (putty,shift)
+# bindkey [29~ eval "meta" "stuff 'p'" # for previous inner window (macbook,shift)
+# bindkey [31~ eval "meta" "stuff 'n'" # for previous inner window (macbook,shift)
+#
+# -- obsolete --
+# ssh & matlab
+# bash -l login screen
+#      -i interactive tag so that .bashrc does not quit immediately due to my switch at its beginning
+#      -c run command inside the string.
+# bindkey -k k4 screen /bin/bash -lic "ssh2" 
+# bindkey -k k5 screen /bin/bash -lic "rmatlab" 
+#
+# -- obsolete --
+# About weird codes: can do ctrl+v ctrl+f1 to get the corr. code in vi/console.
+# -k F2 -> F12
+# bindkey -k F2 kill
+#
+# matlab others: works well but not super necessary any more.
+# bindkey -k k6 screen /bin/bash -lic "slave" # or: slave prospero
+# bindkey -k k7 screen /bin/bash -lic "rtop"
+#
+# old, probably not good:
+# bindkey [15~ screen /bin/bash -lc "slave kent" # ctrl+f5
+# bindkey [18~ screen /bin/bash -lc "ssh kent -t top" # ctrl+f7 --> overwrites f7
+# bindkey -k k9 exec echo -e "dbstep"
+# 
+# F10 bindkey -k k; select 8
+# F11 bindkey -k F1 select 9
+# F12 bindkey -k F2 select 9
+# 
+# change tabs: old key bindings
+# bindkey -k k8 prev # F8: switch to left tab --> works nice but problematic on keyboards w/o F keys.
+# bindkey -k k9 next # F9: switch to right tab --> works nice but problematic on keyboards w/o F keys.
+# bindkey  prev # ctrl [  (much better on ipad keyboard but conflicts with vim)
+# bindkey  next # ctrl ]  (much better on ipad keyboard but conflicts with vim)
+# # for shift UP and DOWN arrows
+# bindkey ^[[1;5A prev
+# bindkey ^[[1;5B next
+# # for ctrl right and left arrows
+# bindkey ^[[1;5D prev
+# bindkey ^[[1;5C next
+# # for shift right and left arrows
+# bindkey ^[[1;2D prev
+# bindkey ^[[1;2C next
+
+
