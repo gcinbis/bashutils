@@ -222,7 +222,7 @@ alias quota='quota -s'
 alias meminfo='more /proc/meminfo'
 
 # environment variables
-alias printpath='echo $PATH | sed "y/:/\n/"'
+alias printpath='echo $PATH | sed "y/:/\n/"' # alternative: "${PATH//:/$'\n'}"
 alias printldlibpath='echo $LD_LIBRARY_PATH | sed "y/:/\n/"'
 
 # print various info about a process.
