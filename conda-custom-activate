@@ -42,7 +42,6 @@ function ___conda_custom_activate___() {
     local __conda_setup="$("$1/bin/conda" 'shell.bash' 'hook' 2> /dev/null)"
     local __conda_setup_ret=$?
 
-    # re-set "set -e"
     if [[ $__errexit == 1 ]]; then set -e; fi # restore errexit status
 
     # setup conda
@@ -58,8 +57,8 @@ function ___conda_custom_activate___() {
 
     set +e
     assert-conda -s
+    if [[ $__errexit == 1 ]]; then set -e; fi # restore errexit status
     if [[ $? != 0 ]]; then
-        if [[ $__errexit == 1 ]]; then set -e; fi # restore errexit status
         echo "conda could not be activated, make sure ANACONDA_ROOT=$1 is the correct anaconda root path"
         return 2
     fi
