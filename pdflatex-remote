@@ -26,6 +26,7 @@ function __help_and_exit__()
     echo ""
     echo "ARGUMENTS"
     echo "--id <id>                    Defines the remote temporary subfolder name. Useful for avoiding clashes across projects. (Default=current folder name)"
+    echo "--nobib                      Do not call bibtex"
     echo "<src.tex>                    Replace with main"
     echo ""
     echo "REQUIRED ENVIRONMENT VARIABLES"
@@ -57,6 +58,7 @@ function __main__()
 
     # default project id
     local _PROJID=`basename "$PWD"`
+    local _BIBTEX='bibtex'
 
     argi=0 # argument reading index
     for (( argi=1; argi<=$((narg-1)); argi++ )); do
@@ -66,7 +68,8 @@ function __main__()
                 __help_and_exit__ # end of arguments
             fi
             _PROJID="${!argi}"
-
+        elif [[ "${!argi}" == '--nobib' ]]; then  
+            _BIBTEX="echo skipping bibtex"
         else
             command echo "Unrecognized argument: {!argi}"
             __help_and_exit__
@@ -102,7 +105,7 @@ function __main__()
 
     # compile remotely
     echo "pdflatex-remote::Compile on remote host."
-    ssh -p "$_SSHPORT" "$PDFLATEX_REMOTE_HOST" "(cd \"$_TOPATH\" && command pdflatex $_TEXARGS \"$_TEXFILE\" && bibtex \"$_TEXFILE_NOEXT\")" # works with spaces well   
+    ssh -p "$_SSHPORT" "$PDFLATEX_REMOTE_HOST" "(cd \"$_TOPATH\" && command pdflatex $_TEXARGS \"$_TEXFILE\" && $_BIBTEX \"$_TEXFILE_NOEXT\")" # works with spaces well   
 
     # transfer back 
     echo "pdflatex-remote::Transfering back the compiled pdf file."
