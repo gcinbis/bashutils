@@ -1,0 +1,33 @@
+#!/bin/bash 
+#
+# A wrapper on pdfannots, the following command's output is written into the clipboard:
+#   pdfannots "$1" | sed 's/^\* Page.*/\* -/' | save_to_clipboard
+#
+# pdfannots installation:
+#   - MacOS: `pip3 install pdfannots`
+#   - Linux: `sudo apt install pipx` and `pipx install pdfannots`
+#
+# Gokberk Cinbis, May 2025
+
+# https://stackoverflow.com/questions/3466166/how-to-check-if-running-in-cygwin-mac-or-linux
+unameOut="$(\uname -s)"
+case "${unameOut}" in
+    Linux*)     machine=Linux;;
+    Darwin*)    machine=Mac;;
+    CYGWIN*)    machine=Cygwin;;
+    MINGW*)     machine=MinGw;;
+    *)          machine="UNKNOWN:${unameOut}"
+esac
+
+if [[ $machine == "Mac" ]]; then
+    pdfannots "$1" | sed 's/^\* Page.*/\* -/' | pbcopy
+elif [[ $machine == "Linux" ]]; then
+    pdfannots "$1" | sed 's/^\* Page.*/\* -/' | xsel -ib
+else
+    echo "Unsupported OS."
+    exit 1
+fi
+
+echo "Markdown output has been saved into the clipboard."
+
+
