@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# Helper script, see gitsyncroot-nomsg-periodic.
+# Simply echos $BASHUTILS_GIT_TOKEN
+#
+# Author: Gokberk Cinbis, May 2025
+
+echo $BASHUTILS_GIT_TOKEN
+
+
