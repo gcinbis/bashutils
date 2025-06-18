@@ -9,10 +9,11 @@ function __print_help_and_exit__()
     command echo "USAGE"
     command echo "killapp [--noprompt] [--echo-only] <regexp>"
     command echo
-    command echo "  --force      Skip the confirmation prompt."
-    command echo "  --echo-only  Kill signal commands are printed but not executed."
-    command echo "  --all-users  Don't filter processes by $USER. May need sudo to actually send KILL."
-    command echo "  --sudo       Send KILL signal with sudo."
+    command echo "  --force       Skip the confirmation prompt."
+    command echo "  --echo-only   Kill signal commands are printed but not executed."
+    command echo "  --all-users   Don't filter processes by $USER. May need sudo to actually send KILL."
+    command echo "  --print-paths Uses 'ls -l /proc/<pid>/exe' to print each INCLUDED process path (requires sudo password)."
+    command echo "  --sudo        Send KILL signal with sudo."
     command echo 
     command echo "grep is run in case-sensitive mode only if <pattern> contains at least one upper letter (similar to smartcase in vim)."
     exit 1
@@ -25,6 +26,7 @@ mode_force=0
 mode_echo_only=0
 mode_all_users=0
 mode_sudo=0
+mode_printpaths=0
 kill_pids=""
 
 function __send_kill__()
@@ -54,12 +56,10 @@ function __kill__()
 
     if [ $mode_all_users -eq 0 ]; then
         out=`command ps aux | command grep "^$USER" | command grep $grep_args "$reg_exp"` 
-        echo command grep $grep_args "$reg_exp" 
-        command ps aux | command grep "^$USER" | command grep $grep_args "$reg_exp" 
+        echo "command ps aux | command grep ^$USER | command grep $grep_args $reg_exp"
     else
         out=`command ps aux | command grep $grep_args "$reg_exp"` 
-        echo command grep $grep_args "$reg_exp" 
-        command ps aux | command grep $grep_args "$reg_exp" 
+        echo "command ps aux | command grep $grep_args $reg_exp" 
     fi
     grep_no_quote="grep $grep_args $reg_exp"
 
@@ -85,6 +85,11 @@ function __kill__()
             any_exclude=1
         else 
             lines_include="$lines_include\n$line"
+            if [[ $mode_printpaths == 1 ]]; then
+                #_pidpath=`command sudo ls -a /proc/$pid/exe` (Alternative to readlink but not as neat)
+                _pidpath=`command sudo readlink /proc/$pid/exe`
+                lines_include="$lines_include\n --> $_pidpath"
+            fi
             kill_pids="$kill_pids $pid"
             any_include=1
         fi
@@ -139,6 +144,8 @@ function __main__()
             mode_all_users=1
         elif [ "${!argi}" == "--sudo" ]; then
             mode_sudo=1
+        elif [ "${!argi}" == "--print-paths" ]; then
+            mode_printpaths=1
         else
             command echo "Unrecognized option: ${!argi}"
             command echo ""
