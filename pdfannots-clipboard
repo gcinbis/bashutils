@@ -35,8 +35,8 @@ function __main__()
         *)          machine="UNKNOWN:${unameOut}"
     esac
 
-    # Replacing output with * - causes two-level list. * | is much better.
-    local __sed_mac='s/^ \* Page.*/\* |/'
+    # Replacing output with * - causes two-level list. "--" behaves much better on Notion.
+    local __sed_mac='s/^ \* Page.*/\* --/'
     local __sed_lnx=__sed_mac
 
     if [[ $machine == "Mac" ]]; then
