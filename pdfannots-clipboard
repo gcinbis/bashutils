@@ -2,6 +2,8 @@
 #
 # Gokberk Cinbis, May 2025
 
+set -e
+
 function __pdfannots__()
 {
     pdfannots --no-condense --no-page-labels "$1"
@@ -35,9 +37,10 @@ function __main__()
         *)          machine="UNKNOWN:${unameOut}"
     esac
 
-    # Replacing output with * - causes two-level list. "--" behaves much better on Notion.
-    local __sed_mac='s/^ \* Page.*/\* --/'
-    local __sed_lnx=__sed_mac
+    # Replacing output with * - causes two-level list. * | is much better.
+    #local __sed_mac='s/^ \* Page.*/\* --/'
+    local __sed_mac='s/^ \* Page.*/\* |/'
+    local __sed_lnx='s/^ \* Page.*/\* |/'
 
     if [[ $machine == "Mac" ]]; then
         __pdfannots__ "$1" | sed "$__sed_mac" | pbcopy
