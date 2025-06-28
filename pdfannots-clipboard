@@ -6,27 +6,31 @@ set -e
 
 function __pdfannots__()
 {
-    pdfannots --no-condense --no-page-labels "$1"
+    pdfannots "$@"
 }
 
-function __main__()
+function __help__()
 {
-    local narg=$#
-    local regexp="${!narg}" # last argument
+    echo "USAGE: pdfannots-clipboard [style] <filename>"
+    echo ""
+    echo "A wrapper on pdfannots, a cleaned-up version of pdfannots is saved into the clipboard."
+    echo ""
+    echo "Optional style flags"
+    echo " - quotes        A sequence of quotes. (default)"
+    echo " - pagelabels    A list of quotes with page labels only (without page numbers)."
+    echo " - quoteslist    A list of quotes with empty list entries."
+    echo " - full          A list of quotes with page numbers and auto-extracted labels."
+    echo ""
+    echo ""
+    echo "pdfannots installation:"
+    echo "   - MacOS: pip3 install pdfannots"
+    echo "   - Linux: sudo apt install pipx"
+    echo "            pipx install pdfannots"
+    exit 1
+}
 
-    if [ $narg -lt 1 ]
-    then
-        echo "USAGE: pdfannots-clipboard <filename>"
-        echo ""
-        echo "A wrapper on pdfannots, a cleaned-up version of pdfannots is saved into the clipboard."
-        echo ""
-        echo "pdfannots installation:"
-        echo "   - MacOS: pip3 install pdfannots"
-        echo "   - Linux: sudo apt install pipx"
-        echo "            pipx install pdfannots"
-        exit 1
-    fi
-
+function __copytoclipboard__()
+{
     # https://stackoverflow.com/questions/3466166/how-to-check-if-running-in-cygwin-mac-or-linux
     local unameOut="$(\uname -s)"
     case "${unameOut}" in
@@ -37,19 +41,61 @@ function __main__()
         *)          machine="UNKNOWN:${unameOut}"
     esac
 
-    # Replacing output with * - causes two-level list. * | is much better.
-    #local __sed_mac='s/^ \* Page.*/\* --/'
-    local __sed_mac='s/^ \* Page.*/\* |/'
-    local __sed_lnx='s/^ \* Page.*/\* |/'
-
     if [[ $machine == "Mac" ]]; then
-        __pdfannots__ "$1" | sed "$__sed_mac" | pbcopy
+        pbcopy
     elif [[ $machine == "Linux" ]]; then
-        __pdfannots__ "$1" | sed "$__sed_lnx" | xsel -ib
+        xsel -ib
     else
         echo "Unsupported OS."
         exit 2
     fi
+}
+
+function __main__()
+{
+    local narg=$#
+    local regexp="${!narg}" # last argument
+    local pdfpath=""
+    local style="--quotes" # default
+    local sed1='s/\(.*\)/\1/g' # placeholder that makes no changes
+    local sed2='s/\(.*\)/\1/g' # placeholder that makes no changes (sed2 is unused currently)
+
+    if [ $narg -eq 1 ]
+    then
+        pdfpath="$1"
+    elif [ $narg -eq 2 ]
+    then
+        style="$1"
+        pdfpath="$2"
+    else
+        __help__
+    fi
+
+    if [ $style == "--quoteslist" ]
+    then
+        pdfargs=("--no-condense" "--no-page-labels")
+        local sed1='s/^ \* Page.*/\* |/' # remove page numbers
+
+    elif [ $style == "--quotes" ]
+    then
+        pdfargs=("--no-condense" "--no-page-labels")
+        local sed1='s/^ \* Page.*//' # avoid creating list, just a sequence of quotes
+
+    elif [ $style == "--full" ]
+    then
+        pdfargs=("--no-condense") # no changes
+ 
+    elif [ $style == "--pagelabels" ]
+    then
+        pdfargs=("--no-condense")
+        local sed1='s/^ \* Page.* (\(.*\))/\* \1/' # Choose labels within paranthesis
+
+    else
+        echo "Unknown style flag."
+        exit 3
+    fi
+
+    __pdfannots__ "${pdfargs[@]}" "$pdfpath" | sed "$sed1" | sed "$sed2" | __copytoclipboard__
 
     echo "Markdown output has been saved into the clipboard."
 
