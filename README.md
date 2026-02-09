@@ -10,6 +10,7 @@ Gokberk Cinbis, 2018.
 * `alignassign`                                 Align assignment statements in source codes.
 * `aligntable`                                  Align table columns. Particularly useful for latex tables via vim & emacs.
 * `bibrmfield`                                  Clean-up bib files easily.
+* `cat-with-separators`                         File concatenation with filename based separators.
 * `diffdir`                                     Compare directory pairs with helper tools.
 * `eq2eps,eq2png`                               Generate eps, png files for LaTeX equations.
 * `pdflatex-remote`                             Compile tex project via a remote server.

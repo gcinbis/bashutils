@@ -1,0 +1,33 @@
+#!/bin/bash
+# Gemini & Gokberk Cinbis - 9.2.2026
+
+# Function to display help
+show_help() {
+    echo "Usage: cat-with-separators <file1> <file2> [fileN...]"
+    echo ""
+    echo "Concatenates files to stdout with LLM-friendly headers."
+    echo "Each file is wrapped in '==============' delimiters for clear context separation."
+    echo ""
+    echo "Example: cat-with-separators script.py config.json > context.txt"
+}
+
+# Check if help is requested or no arguments provided
+if [[ "$1" == "-h" || "$1" == "--help" || $# -eq 0 ]]; then
+    show_help
+    exit 0
+fi
+
+# Iterate through all provided arguments
+for file in "$@"; do
+    if [ -f "$file" ]; then
+        echo "=============="
+        echo "$(basename "$file")"
+        echo "=============="
+        echo ""
+        cat "$file"
+        echo -e "\n"
+    else
+        # Send error to stderr so it doesn't pollute the concatenated stdout
+        echo "Warning: '$file' is not a valid file. Skipping." >&2
+    fi
+done
