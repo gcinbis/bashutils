@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+
+import subprocess
+import os
+import sys
+
+def convert_md_to_kindle(input_file, output_format="azw3"):
+    """
+    Converts Markdown to Kindle-compatible formats (azw3 or mobi).
+    Defaults to azw3 as it is the modern standard.
+    """
+    if not os.path.exists(input_file):
+        print(f"Error: File '{input_file}' not found.")
+        return
+
+    base_name = os.path.splitext(input_file)[0]
+    temp_epub = f"{base_name}.epub"
+    final_output = f"{base_name}.{output_format}"
+
+    try:
+        # Step 1: Convert Markdown to EPUB using Pandoc
+        print(f"--- Converting {input_file} to EPUB...")
+        subprocess.run(["pandoc", input_file, "-o", temp_epub], check=True)
+
+        if output_format != 'epub':
+            # Step 2: Convert EPUB to Kindle format using Calibre's ebook-convert
+            print(f"--- Converting EPUB to {output_format.upper()}...")
+            subprocess.run(["ebook-convert", temp_epub, final_output], check=True)
+            os.remove(temp_epub) # Cleanup intermediate EPUB
+
+        print(f"Successfully created: {final_output}")
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error during conversion: {e}")
+    except FileNotFoundError:
+        print("Error: Make sure 'pandoc' and 'calibre' (ebook-convert) are installed.")
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: md2kindle <file.md> [epub|mobi|azw3]")
+    else:
+        fmt = sys.argv[2] if len(sys.argv) > 2 else "epub"
+        convert_md_to_kindle(sys.argv[1], fmt)
