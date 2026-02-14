@@ -14,7 +14,7 @@ def convert_md_to_kindle(input_file, output_format="azw3"):
         return
 
     base_name = os.path.splitext(input_file)[0]
-    temp_epub = f"{base_name}.epub"
+    temp_epub = f"{base_name}.tmp.epub"
     final_output = f"{base_name}.{output_format}"
 
     try:
@@ -22,11 +22,11 @@ def convert_md_to_kindle(input_file, output_format="azw3"):
         print(f"--- Converting {input_file} to EPUB...")
         subprocess.run(["pandoc", input_file, "-o", temp_epub], check=True)
 
-        if output_format != 'epub':
-            # Step 2: Convert EPUB to Kindle format using Calibre's ebook-convert
-            print(f"--- Converting EPUB to {output_format.upper()}...")
-            subprocess.run(["ebook-convert", temp_epub, final_output], check=True)
-            os.remove(temp_epub) # Cleanup intermediate EPUB
+        # Step 2: Convert EPUB to Kindle format using Calibre's ebook-convert
+        # Note: this is necessary even for epub output format since Kindle requires meta-data, which is not by default added by pandoc (unless markdown already has it)
+        print(f"--- Converting EPUB to {output_format.upper()}...")
+        subprocess.run(["ebook-convert", temp_epub, final_output], check=True)
+        os.remove(temp_epub) # Cleanup intermediate EPUB
 
         print(f"Successfully created: {final_output}")
 
