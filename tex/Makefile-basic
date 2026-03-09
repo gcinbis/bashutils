@@ -27,35 +27,17 @@ pdf:
 	rm -f paper-compressed.pdf
 	@grep --color=auto -i warn paper.{log,blg} || true 
 	@grep --color=auto -i error paper.{log,blg} || true 
-	cp paper.pdf paper_view.pdf
-
-supmat:
-	pdflatex supmat.tex
-	bibtex supmat
-	@grep --color=auto -i warn supmat.{log,blg} || true 
-	@grep --color=auto -i error supmat.{log,blg} || true 
-	cp supmat.pdf supmat_view.pdf
-
-ulimit:
-	ulimit -S -n 4096 # fix "Too many open files" error
 
 autosync:
 	gitsyncroot-nomsg-periodic 4
 
 view:
-	echo pdfview paper_view.pdf
-	$(PDFVIEW) paper_view.pdf
-
-view-supmat:
-	echo pdfview supmat_view.pdf
-	$(PDFVIEW) supmat_view.pdf
+	echo pdfview paper.pdf
+	$(PDFVIEW) paper.pdf
 
 view-chrome: # no auto-refresh but darn good
 	open -na "Google Chrome" --args --new-tab "file://${PWD}/paper.pdf" # MacOS. TODO: Linux variant.
 
 clean:
 	rm -rf paper.{pdf,aux,blg,bbl,log,out,aux,brf}
-	rm -rf supmat.{pdf,aux,blg,bbl,log,out,aux,brf}
-	rm -rf paper_view.pdf
-	rm -rf supmat_view.pdf
 
