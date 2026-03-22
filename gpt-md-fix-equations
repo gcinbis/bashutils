@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+# Gokberk Cinbis and Gemini, March 2026
+set -e
+
+print_help() {
+    cat <<'EOF'
+Usage: gpt-md-fix-equations [OPTIONS] [FILE]
+
+Normalizes GPT-generated markdown formulas into standard markdown formatting 
+that Notion or other standard Markdown editors can properly parse.
+
+It transforms formats such as:
+  \( ... \)       ->  $ ... $
+  \[ ... \]       ->  $$ ... $$
+  ( ... ) spaces  ->  $ ... $
+  single [ or ]   ->  $$
+
+Options:
+  --clipboard    Update clipboard contents instead of a file.
+  -              Read from standard input and write to standard output (pipeline).
+  -h, --help     Print this help message.
+  <file>         Update the given file in-place, creating a .bak backup.
+
+Examples:
+  gpt-md-fix-equations my_notes.md
+  cat my_notes.md | gpt-md-fix-equations - | less
+  gpt-md-fix-equations --clipboard
+EOF
+}
+
+normalize_markdown() {
+    sed -E \
+        -e 's/\\\(/$/g' \
+        -e 's/\\\)/$/g' \
+        -e 's/\\\[/$$/g' \
+        -e 's/\\\]/$$/g' \
+        -e 's/[(] /\$/g' \
+        -e 's/ [)]/\$/g' \
+        -e 's/^[[:space:]]*\[[[:space:]]*$/$$/g' \
+        -e 's/^[[:space:]]*\][[:space:]]*$/$$/g'
+}
+
+get_clipboard() {
+    if command -v pbpaste >/dev/null 2>&1; then
+        pbpaste
+    elif command -v xsel >/dev/null 2>&1; then
+        # user originally used -op (primary selection)
+        xsel -op
+    elif command -v xclip >/dev/null 2>&1; then
+        xclip -selection clipboard -o
+    elif command -v wl-paste >/dev/null 2>&1; then
+        wl-paste
+    else
+        echo "Error: No clipboard utility found (pbpaste, xsel, xclip, wl-paste)." >&2
+        return 1
+    fi
+}
+
+set_clipboard() {
+    if command -v pbcopy >/dev/null 2>&1; then
+        pbcopy
+    elif command -v xsel >/dev/null 2>&1; then
+        # user originally used -ib (clipboard selection)
+        xsel -ib
+    elif command -v xclip >/dev/null 2>&1; then
+        xclip -selection clipboard -i
+    elif command -v wl-copy >/dev/null 2>&1; then
+        wl-copy
+    else
+        echo "Error: No clipboard utility found (pbcopy, xsel, xclip, wl-copy)." >&2
+        return 1
+    fi
+}
+
+__main__() {
+    if [[ $# -eq 0 ]]; then
+        print_help
+        exit 0
+    fi
+
+    local arg="$1"
+
+    if [[ "$arg" == "-h" || "$arg" == "--help" ]]; then
+        print_help
+        exit 0
+    elif [[ "$arg" == "--clipboard" ]]; then
+        local tmp
+        tmp=$(mktemp)
+        get_clipboard | normalize_markdown > "$tmp"
+        cat "$tmp" | set_clipboard
+        rm -f "$tmp"
+        echo "The clipboard content has been updated."
+    elif [[ "$arg" == "-" ]]; then
+        normalize_markdown
+    else
+        local filepath="$arg"
+        if [[ ! -f "$filepath" ]]; then
+            echo "Error: File '$filepath' not found." >&2
+            exit 1
+        fi
+        
+        # Create backup
+        cp -p "$filepath" "${filepath}.bak"
+        
+        # Update in-place safely without risking sed -i differences
+        local tmp
+        tmp=$(mktemp)
+        cat "$filepath" | normalize_markdown > "$tmp"
+        cat "$tmp" > "$filepath"
+        rm -f "$tmp"
+        
+        echo "Updated '$filepath' (backup saved to '${filepath}.bak')."
+    fi
+}
+
+__main__ "$@"
+
+

@@ -13,6 +13,7 @@ Gokberk Cinbis, 2018.
 * `cat-with-separators`                         File concatenation with filename based separators.
 * `diffdir`                                     Compare directory pairs with helper tools.
 * `eq2eps,eq2png`                               Generate eps, png files for LaTeX equations.
+* `gpt-md-fix-equations`                        Normalizes GPT-generated markdown formulas into standard markdown formatting.
 * `pdflatex-remote`                             Compile tex project via a remote server.
 * `strrep`                                      Find and replace patterns in stdin or files.
 * `tex/`                                        Collection of useful files (Makefile, .gitignore, macros) for LaTeX documents.
