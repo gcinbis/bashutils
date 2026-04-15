@@ -1,0 +1,126 @@
+#!/bin/bash
+
+# md2pdf: A utility to convert markdown (and other formats) to PDF using pandoc.
+# Supported engines: latex (pdflatex), wkhtmltopdf, weasyprint.
+#
+# Gokberk Cinbis, April 2026 via Gemini CLI
+
+set -e
+
+usage() {
+    echo "Usage: $(basename "$0") [options] <input_file>"
+    echo ""
+    echo "Options:"
+    echo "  -o, --output <file>    Output PDF file path (default: input_file.pdf)"
+    echo "  -e, --engine <engine>  PDF engine to use: latex, wkhtmltopdf, weasyprint (default: latex)"
+    echo "  --install              Install necessary tools (pandoc and engines) and exit"
+    echo "  -h, --help             Show this help message"
+    echo ""
+    echo "Notes:"
+    echo "  - Pandoc supports many input formats such as Markdown, HTML, DOCX, ODT, EPUB, LaTeX, Org mode, and more."
+    echo "  - Engines: 'latex' uses pdflatex, 'wkhtmltopdf' and 'weasyprint' are HTML-based engines."
+    echo "  - Examples:"
+    echo "      $(basename "$0") document.md                    # LaTeX-based (pdflatex)"
+    echo "      $(basename "$0") -e wkhtmltopdf document.docx   # DOCX to PDF"
+    echo "      $(basename "$0") --engine weasyprint index.html # HTML to PDF"
+    exit 1
+}
+
+install_tools() {
+    OS="$(uname -s)"
+    case "${OS}" in
+        Linux*)
+            if command -v apt-get >/dev/null 2>&1; then
+                echo "Detected Debian/Ubuntu system. Installing tools via apt..."
+                sudo apt-get update
+                sudo apt-get install -y pandoc texlive-latex-recommended texlive-xetex wkhtmltopdf weasyprint
+            else
+                echo "Linux distribution not supported for automatic installation. Please install pandoc, texlive, wkhtmltopdf, or weasyprint manually."
+                exit 1
+            fi
+            ;;
+        Darwin*)
+            echo "Detected macOS. Installing tools via brew..."
+            if ! command -v brew >/dev/null 2>&1; then
+                echo "Homebrew not found. Please install it first: https://brew.sh/"
+                exit 1
+            fi
+            brew install pandoc wkhtmltopdf weasyprint
+            echo "Note: LaTeX might need to be installed manually (e.g., MacTeX) or via 'brew install --cask basictex'."
+            ;;
+        *)
+            echo "Operating system ${OS} not supported for automatic installation."
+            exit 1
+            ;;
+    esac
+    echo "Installation attempt complete."
+    exit 0
+}
+
+# Default values
+ENGINE="pdflatex"
+OUTPUT=""
+INPUT=""
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -o|--output)
+            OUTPUT="$2"
+            shift 2
+            ;;
+        -e|--engine)
+            case "$2" in
+                latex) ENGINE="pdflatex" ;;
+                wkhtmltopdf|weasyprint) ENGINE="$2" ;;
+                *) echo "Unknown engine: $2"; usage ;;
+            esac
+            shift 2
+            ;;
+        --install)
+            install_tools
+            ;;
+        -h|--help)
+            usage
+            ;;
+        *)
+            if [ -z "$INPUT" ]; then
+                INPUT="$1"
+                shift
+            else
+                echo "Unexpected argument: $1"
+                usage
+            fi
+            ;;
+    esac
+done
+
+if [ -z "$INPUT" ]; then
+    usage
+fi
+
+if [ ! -f "$INPUT" ]; then
+    echo "Error: Input file '$INPUT' not found."
+    exit 1
+fi
+
+if [ -z "$OUTPUT" ]; then
+    # Change extension to .pdf
+    OUTPUT="${INPUT%.*}.pdf"
+fi
+
+# Check if output file already exists
+if [ -f "$OUTPUT" ]; then
+    echo "Warning: Output file '$OUTPUT' already exists. Overwriting..."
+fi
+
+echo "Converting '$INPUT' to '$OUTPUT' using engine '$ENGINE'..."
+
+pandoc "$INPUT" --pdf-engine="$ENGINE" -o "$OUTPUT"
+
+if [ $? -eq 0 ]; then
+    echo "Successfully created '$OUTPUT'."
+else
+    echo "Error: Pandoc conversion failed."
+    exit 1
+fi
