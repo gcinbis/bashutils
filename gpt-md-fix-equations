@@ -6,7 +6,7 @@ print_help() {
     cat <<'EOF'
 Usage: gpt-md-fix-equations [OPTIONS] [FILE]
 
-Normalizes GPT-generated markdown formulas into standard markdown formatting 
+Normalizes GPT-generated markdown formulas into standard markdown formatting
 that Notion or other standard Markdown editors can properly parse.
 
 It transforms formats such as:
@@ -16,13 +16,16 @@ It transforms formats such as:
   single [ or ]   ->  $$
 
 Options:
-  --clipboard    Update clipboard contents instead of a file.
-  -              Read from standard input and write to standard output (pipeline).
-  -h, --help     Print this help message.
-  <file>         Update the given file in-place, creating a .bak backup.
+  --clipboard         Update clipboard contents instead of a file.
+  -o <output_file>    Write output to the given file instead of updating in-place.
+                      No .bak backup is created when this option is used.
+  -                   Read from standard input and write to standard output (pipeline).
+  -h, --help          Print this help message.
+  <file>              Update the given file in-place, creating a .bak backup.
 
 Examples:
   gpt-md-fix-equations my_notes.md
+  gpt-md-fix-equations my_notes.md -o fixed_notes.md
   cat my_notes.md | gpt-md-fix-equations - | less
   gpt-md-fix-equations --clipboard
 EOF
@@ -78,6 +81,16 @@ __main__() {
         exit 0
     fi
 
+    local outfile=""
+
+    # Parse -o option
+    if [[ "$1" != "-" && "$1" != "--clipboard" && "$1" != "-h" && "$1" != "--help" ]]; then
+        # Check if -o appears as second argument (after the input file)
+        if [[ $# -ge 3 && "$2" == "-o" ]]; then
+            outfile="$3"
+        fi
+    fi
+
     local arg="$1"
 
     if [[ "$arg" == "-h" || "$arg" == "--help" ]]; then
@@ -98,18 +111,22 @@ __main__() {
             echo "Error: File '$filepath' not found." >&2
             exit 1
         fi
-        
-        # Create backup
-        cp -p "$filepath" "${filepath}.bak"
-        
-        # Update in-place safely without risking sed -i differences
+
         local tmp
         tmp=$(mktemp)
-        cat "$filepath" | normalize_markdown > "$tmp"
-        cat "$tmp" > "$filepath"
-        rm -f "$tmp"
-        
-        echo "Updated '$filepath' (backup saved to '${filepath}.bak')."
+        normalize_markdown < "$filepath" > "$tmp"
+
+        if [[ -n "$outfile" ]]; then
+            cat "$tmp" > "$outfile"
+            rm -f "$tmp"
+            echo "Written to '$outfile'."
+        else
+            # Create backup and update in-place
+            cp -p "$filepath" "${filepath}.bak"
+            cat "$tmp" > "$filepath"
+            rm -f "$tmp"
+            echo "Updated '$filepath' (backup saved to '${filepath}.bak')."
+        fi
     fi
 }
 
