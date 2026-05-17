@@ -73,21 +73,21 @@ function __main__()
 
     if [ $style == "--quoteslist" ]
     then
-        pdfargs=("--no-condense" "--no-page-labels")
+        pdfargs=("--no-condense" "--no-page-labels" "--no-group")
         local sed1='s/^ \* Page.*/\* |/' # remove page numbers
 
     elif [ $style == "--quotes" ]
     then
-        pdfargs=("--no-condense" "--no-page-labels")
+        pdfargs=("--no-condense" "--no-page-labels" "--no-group")
         local sed1='s/^ \* Page.*//' # avoid creating list, just a sequence of quotes
 
     elif [ $style == "--full" ]
     then
-        pdfargs=("--no-condense") # no changes
+        pdfargs=("--no-condense" "--no-group") # no changes
  
     elif [ $style == "--pagelabels" ]
     then
-        pdfargs=("--no-condense")
+        pdfargs=("--no-condense" "--no-group")
         local sed1='s/^ \* Page.* (\(.*\))/\* \1/' # Choose labels within paranthesis
 
     else
@@ -95,6 +95,7 @@ function __main__()
         exit 3
     fi
 
+    echo __pdfannots__ "${pdfargs[@]}" "$pdfpath" | sed "$sed1" | sed "$sed2" 
     __pdfannots__ "${pdfargs[@]}" "$pdfpath" | sed "$sed1" | sed "$sed2" | __copytoclipboard__
 
     echo "Markdown output has been saved into the clipboard."
