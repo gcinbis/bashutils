@@ -11,15 +11,18 @@ function __pdfannots__()
 
 function __help__()
 {
-    echo "USAGE: pdfannots-clipboard [style] <filename>"
+    echo "USAGE: pdfannots-clipboard [style] [--twocolumn] <filename>"
     echo ""
     echo "A wrapper on pdfannots, a cleaned-up version of pdfannots is saved into the clipboard."
     echo ""
     echo "Optional style flags"
-    echo " - quotes        A sequence of quotes. (default)"
-    echo " - pagelabels    A list of quotes with page labels only (without page numbers)."
-    echo " - quoteslist    A list of quotes with empty list entries."
-    echo " - full          A list of quotes with page numbers and auto-extracted labels."
+    echo " --quotes        A sequence of quotes. (default)"
+    echo " --pagelabels    A list of quotes with page labels only (without page numbers)."
+    echo " --quoteslist    A list of quotes with empty list entries."
+    echo " --full          A list of quotes with page numbers and auto-extracted labels."
+    echo ""
+    echo "Optional layout flags"
+    echo " --twocolumn     Two-column PDF layout (passes --cols=2 to pdfannots)."
     echo ""
     echo ""
     echo "pdfannots installation:"
@@ -53,23 +56,39 @@ function __copytoclipboard__()
 
 function __main__()
 {
-    local narg=$#
-    local regexp="${!narg}" # last argument
     local pdfpath=""
     local style="--quotes" # default
+    local twocolumn=0
     local sed1='s/\(.*\)/\1/g' # placeholder that makes no changes
     local sed2='s/\(.*\)/\1/g' # placeholder that makes no changes (sed2 is unused currently)
+    local positional=()
 
-    if [ $narg -eq 1 ]
-    then
-        pdfpath="$1"
-    elif [ $narg -eq 2 ]
-    then
-        style="$1"
-        pdfpath="$2"
-    else
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --quotes|--pagelabels|--quoteslist|--full)
+                style="$1"
+                shift
+                ;;
+            --twocolumn)
+                twocolumn=1
+                shift
+                ;;
+            --*)
+                echo "Unknown flag: $1"
+                __help__
+                ;;
+            *)
+                positional+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    if [ ${#positional[@]} -ne 1 ]; then
         __help__
     fi
+
+    pdfpath="${positional[0]}"
 
     if [ $style == "--quoteslist" ]
     then
@@ -84,7 +103,7 @@ function __main__()
     elif [ $style == "--full" ]
     then
         pdfargs=("--no-condense" "--no-group") # no changes
- 
+
     elif [ $style == "--pagelabels" ]
     then
         pdfargs=("--no-condense" "--no-group")
@@ -95,7 +114,11 @@ function __main__()
         exit 3
     fi
 
-    echo __pdfannots__ "${pdfargs[@]}" "$pdfpath" | sed "$sed1" | sed "$sed2" 
+    if [ $twocolumn -eq 1 ]; then
+        pdfargs+=("--cols=2")
+    fi
+
+    echo pdfannots "${pdfargs[@]}" "$pdfpath" | sed "$sed1" | sed "$sed2"
     __pdfannots__ "${pdfargs[@]}" "$pdfpath" | sed "$sed1" | sed "$sed2" | __copytoclipboard__
 
     echo "Markdown output has been saved into the clipboard."
