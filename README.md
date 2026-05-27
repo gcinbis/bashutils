@@ -16,6 +16,7 @@ Gokberk Cinbis, 2018-2026.
 * `gpt-md-fix-equations`                        Normalizes GPT-generated markdown formulas into standard markdown formatting.
 * `md2pdf`                                      Pandoc wrapper to simplify markdown-to-pdf (and similar) conversions.
 * `pdflatex-remote`                             Compile tex project via a remote server.
+* `pdf-compress-ps2pdf`                         Uses ps2pdf to try to compress the pdf file.
 * `strrep`                                      Find and replace patterns in stdin or files.
 * `tex/`                                        Collection of useful files (Makefile, .gitignore, macros) for LaTeX documents.
 * `turkish-deasciify-selection-to-clipboard`    turkish-deasciify selection-to-clipboard.
@@ -58,6 +59,7 @@ Gokberk Cinbis, 2018-2026.
 * `mvln`                                        Move and link shortcut.
 * `parse-path`                                  A well-designed path parsing tool.
 * `psapp`                                       List user processes matching to a regular expression.
+* `rsync-easy`                                  An easy-to-use rsync wrapper that accepts one or more remote paths, and copies them into a local directory.
 * `strrep`                                      String find-and-replace.
 * `tmux-parallel-exec-at-dirs`                  Execute one command in parallel at multiple directories within tmux panes & windows.
 * `tmux-parallel-exec`                          Execute multiple commands in parallel within tmux panes & windows.

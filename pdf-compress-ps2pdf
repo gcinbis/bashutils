@@ -10,7 +10,7 @@ function compresspdf_ps2pdf() {
 
     if [ $narg -ne 2 ]
     then
-        echo "USAGE: pdf-print-two-sided input.pdf output.pdf"
+        echo "USAGE: pdf-compress-ps2pdf input.pdf output.pdf"
         echo "Uses ps2pdf to try to compress the pdf file."
         echo ""
         return 1
