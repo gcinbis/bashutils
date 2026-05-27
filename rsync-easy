@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Gokberk Cinbis and Perplexity, May 2026
+# Gokberk Cinbis, May 2026
 
 default_user="$(whoami)"
 
@@ -70,7 +70,15 @@ done
 
 (( ${#sources[@]} >= 1 )) || usage
 
-cmd=(rsync -ah --info=progress2 --partial -e "ssh -p $port")
+# Detect rsync version and use compatible progress option
+rsync_version=$(rsync --version 2>/dev/null | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0.0.0")
+if [[ $(echo "$rsync_version" | cut -d. -f1) -ge 3 ]] && [[ $(echo "$rsync_version" | cut -d. -f2) -ge 1 ]]; then
+  progress_opt="--info=progress2"
+else
+  progress_opt="--progress"
+fi
+
+cmd=(rsync -ah "$progress_opt" --partial -e "ssh -p $port")
 
 if [[ $mode == "--from" ]]; then
   for src in "${sources[@]}"; do
