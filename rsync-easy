@@ -1,45 +1,46 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Gokberk Cinbis, May 2026
+# Gokberk Cinbis and Perplexity, May 2026
+
+default_user="$(whoami)"
 
 usage() {
-    cat <<EOF
-An easy-to-use rsync wrapper that accepts one or more remote paths, and copies them into a specified local directory.
-
+cat >&2 <<'USAGE'
 Usage:
-  ${0##*/} [user@]host[:port] remote_path [remote_path ...] local_dir
+  rsync-easy --from [user@]host[:port] <remote-src>... <local-dest>
+  rsync-easy --to   [user@]host[:port] <local-src>... <remote-dest>
 
-Arguments:
-  [user@]host[:port]   Remote host, optional user and optional SSH port.
-  remote_path          One or more remote files or directories to copy.
-  local_dir            Local destination directory.
+Modes:
+  --from   Copy from remote source path(s) to a local destination.
+  --to     Copy from local source path(s) to a remote destination.
 
 Examples:
-  ${0##*/} hostname:8085 /home/localuser/Desktop/file.txt .
-  ${0##*/} remoteuser@hostname:8085 /a /b /c ~/Downloads
-  ${0##*/} hostname /home/localuser/Desktop/somedir ./tmp
+  rsync-easy --from myhost /etc/hosts ./hosts
+  rsync-easy --from alice@example.com:2222 /var/log/syslog ./syslog
+  rsync-easy --to   myhost ./file.txt ./dir /tmp/upload/
+  rsync-easy --to   alice@example.com:2222 ./build /srv/releases/
 
 Notes:
-  - If user is omitted, the default user is used.
-  - If port is omitted, SSH port 22 is used.
-  - Quote remote paths that contain spaces.
-EOF
+  - The first argument must be either --from or --to.
+  - The second argument must be in the form [user@]host[:port].
+  - If user is omitted, defaults to current user ($(whoami)).
+  - If port is omitted, the default SSH port is: 22.
+USAGE
+exit 1
 }
 
-default_user=`whoami`
+(( $# >= 4 )) || usage
 
-case "${1:-}" in
-    -h|--help)
-        usage
-        exit 0
-        ;;
+mode=$1
+case "$mode" in
+  --from|--to) ;;
+  *)
+    echo "First argument must be either --from or --to." >&2
+    usage
+    ;;
 esac
-
-if [[ $# -lt 3 ]]; then
-    usage >&2
-    exit 1
-fi
+shift
 
 target=$1
 shift
@@ -48,31 +49,39 @@ user=""
 host=""
 port=""
 
-# Match [user@]host[:port]
 if [[ $target =~ ^(([^@]+)@)?([^:]+)(:([0-9]+))?$ ]]; then
-    user=${BASH_REMATCH[2]:-$default_user}
-    host=${BASH_REMATCH[3]}
-    port=${BASH_REMATCH[5]:-22}
+  user=${BASH_REMATCH[2]:-$default_user}
+  host=${BASH_REMATCH[3]}
+  port=${BASH_REMATCH[5]:-22}
 else
-    echo "Invalid target format: $target" >&2
-    echo "Expected: [user@]host[:port]" >&2
-    exit 1
+  echo "Invalid target format: $target" >&2
+  echo "Expected: [user@]host[:port]" >&2
+  exit 1
 fi
 
 remote="${user}@${host}"
-
-# Last argument is the local destination
 argc=$#
-dest="${!argc}"
+final_path="${!argc}"
 
-# All preceding arguments are remote source paths
 sources=()
 for ((i=1; i<argc; i++)); do
-    arg="${!i}"
-    sources+=("${remote}:${arg}")
+  sources+=("${!i}")
 done
 
-mkdir -p -- "$dest"
-echo rsync --progress -avzh -e \"ssh -p ${port}\" "${sources[@]}" "$dest"
-rsync --progress -avzh -e "ssh -p ${port}" "${sources[@]}" "$dest"
+(( ${#sources[@]} >= 1 )) || usage
 
+cmd=(rsync -ah --info=progress2 --partial -e "ssh -p $port")
+
+if [[ $mode == "--from" ]]; then
+  for src in "${sources[@]}"; do
+    cmd+=("${remote}:${src}")
+  done
+  cmd+=("$final_path")
+else
+  for src in "${sources[@]}"; do
+    cmd+=("$src")
+  done
+  cmd+=("${remote}:${final_path}")
+fi
+
+exec "${cmd[@]}"
