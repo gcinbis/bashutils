@@ -1,20 +1,92 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
+# Authors: Gokberk Cinbis & Perplexity -- May 2026
 
-# Gokberk Cinbis, Jan 2021
-# Generalization of du -hs * | sort -h
+# du-sorted: wrapper around du that:
+# - defaults to: du -s -h (summary, human-readable)
+# - sorts by size (smallest → largest)
+# - respects user-specified options when provided
 
-if [ $# -lt 1 ]; then
-    echo "du-sorted <input1> ... <inputN>"
-    echo "Compute size of each file/directory, print in sorted and human readable form."
-    echo "Basically a shortcut to du -hs <input1> ... <inputN> | sort -h"
-    echo "EXAMPLE"
-    echo "  du-sorted *"
-    exit 1
+show_help() {
+  cat <<'EOF'
+du-sorted: like du, but sorted from smallest to largest.
+
+Usage:
+  du-sorted [DU_OPTIONS] [PATH ...]
+
+Defaults (when you don't override them):
+  -s   summarize each argument (only one line per input path)
+  -h   human-readable sizes
+
+Examples:
+  du-sorted
+  du-sorted /var /tmp
+  du-sorted -s -h -c /usr /opt
+  du-sorted -k -c /var   # you override -h with -k
+EOF
+}
+
+# Handle our own help flag
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" && "${2:-}" == "--du" ]]; then
+  # special case: `-h --du` to distinguish our -h from du's -h
+  show_help
+  exit 0
 fi
 
-# ok with multiple quoted arguments
-command du -hs "$@" | command sort -h
+# Collect user du options separately from paths
+du_opts=()
+paths=()
 
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --help)
+      show_help
+      exit 0
+      ;;
+    # Treat -h specially: if user passes -h explicitly, it's a du option
+    -h|-k|-m|-g|-b|-c|-a|-x|-L|-P|-d|-S|-0|-B*|--block-size=*|--bytes|--summarize)
+      du_opts+=("$1")
+      shift
+      ;;
+    --)
+      shift
+      # everything after -- is a path
+      while [[ $# -gt 0 ]]; do
+        paths+=("$1")
+        shift
+      done
+      ;;
+    -*)
+      # any other dash-starting arg: pass through to du
+      du_opts+=("$1")
+      shift
+      ;;
+    *)
+      paths+=("$1")
+      shift
+      ;;
+  esac
+done
 
+# Defaults: add -s and -h if user did not specify any size/summary flags
+# Check if user gave any of -s / --summarize
+have_summarize=false
+have_human=false
 
+for opt in "${du_opts[@]}"; do
+  case "$opt" in
+    -s|--summarize) have_summarize=true ;;
+    -h) have_human=true ;;  # du's own -h
+  esac
+done
+
+$have_summarize || du_opts+=("-s")
+$have_human     || du_opts+=("-h")
+
+# Default path: current directory
+if [[ ${#paths[@]} -eq 0 ]]; then
+  paths=(.)
+fi
+
+# Run du with assembled options and paths, then sort by human-readable size
+du "${du_opts[@]}" -- "${paths[@]}" | sort -h -k1,1
