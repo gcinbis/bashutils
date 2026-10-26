@@ -121,7 +121,17 @@ alias screennew='/usr/bin/screen -S';
 #alias screennew2='/usr/bin/screen -c $HOME/.screenrc2 -S';  # create a .screenrc with just a different "escape" (ctrl-A) to use "screen inside screen" easily.
 alias screen='/usr/bin/screen -dr';
 
-alias txnew='tmux new -s' # followed by new session name
+function txnew() {
+    if [[ $# = 0 ]] 
+    then
+        tmux ls
+        echo ""
+        echo "- USAGE: \"txnew [session-name]\" (creates a new session via tmux new -s) | \"txnew\" (list sessions)"
+    else
+        tmux new -s "$1"
+    fi
+}
+
 function tx() {
     if [[ $# = 0 ]] 
     then
@@ -138,7 +148,7 @@ function tx-detachothers() {
     then
         tmux ls
         echo ""
-        echo "- USAGE: \"tx [session-name]\" (attach a session) | \"tx\" (list sessions)"
+        echo "- USAGE: \"tx-detachothers [session-name]\" (detach a session) | \"tx-detachothers\" (list sessions)"
         echo "Detaches other clients"
     else
         tmux attach -d -t "$1"
