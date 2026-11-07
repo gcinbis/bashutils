@@ -25,7 +25,7 @@ Notes:
   - The first argument must be either --from or --to.
   - The second argument must be in the form [user@]host[:port].
   - If user is omitted, defaults to current user ($(whoami)).
-  - If port is omitted, the default SSH port is: 22.
+  - If port is omitted, the default SSH configuration is used (e.g. from ~/.ssh/config).
 USAGE
 exit 1
 }
@@ -52,7 +52,7 @@ port=""
 if [[ $target =~ ^(([^@]+)@)?([^:]+)(:([0-9]+))?$ ]]; then
   user=${BASH_REMATCH[2]:-$default_user}
   host=${BASH_REMATCH[3]}
-  port=${BASH_REMATCH[5]:-22}
+  port=${BASH_REMATCH[5]:-}
 else
   echo "Invalid target format: $target" >&2
   echo "Expected: [user@]host[:port]" >&2
@@ -78,7 +78,12 @@ else
   progress_opt="--progress"
 fi
 
-cmd=(rsync -ah "$progress_opt" --partial -e "ssh -p $port")
+ssh_cmd="ssh"
+if [[ -n "$port" ]]; then
+  ssh_cmd="ssh -p $port"
+fi
+
+cmd=(rsync -ah "$progress_opt" --partial -e "$ssh_cmd")
 
 if [[ $mode == "--from" ]]; then
   for src in "${sources[@]}"; do
