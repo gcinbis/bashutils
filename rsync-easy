@@ -71,11 +71,14 @@ done
 (( ${#sources[@]} >= 1 )) || usage
 
 # Detect rsync version and use compatible progress option
-rsync_version=$(rsync --version 2>/dev/null | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0.0.0")
-if [[ $(echo "$rsync_version" | cut -d. -f1) -ge 3 ]] && [[ $(echo "$rsync_version" | cut -d. -f2) -ge 1 ]]; then
-  progress_opt="--info=progress2"
-else
-  progress_opt="--progress"
+progress_opt="--progress"
+rsync_out=$(rsync --version 2>/dev/null || true)
+if [[ $rsync_out =~ ([0-9]+)\.([0-9]+) ]]; then
+  rsync_major=${BASH_REMATCH[1]}
+  rsync_minor=${BASH_REMATCH[2]}
+  if (( rsync_major > 3 || (rsync_major == 3 && rsync_minor >= 1) )); then
+    progress_opt="--info=progress2"
+  fi
 fi
 
 ssh_cmd="ssh"
