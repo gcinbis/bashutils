@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+
+# Print the directory path containing the specified executable(s) found in PATH.
+
+show_usage() {
+    cat <<'EOF'
+Usage: whichdir [-r|--resolve] <program> ...
+
+Print the directory path containing the specified executable(s) found in PATH.
+
+Options:
+  -r, --resolve   Resolve symbolic links to the real directory path.
+  -h, --help      Show this help message.
+
+Examples:
+  whichdir git
+  cd `whichdir python3`
+  whichdir -r python3
+EOF
+}
+
+if [ $# -eq 0 ]; then
+    show_usage >&2
+    exit 1
+fi
+
+resolve=0
+programs=()
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -h|--help)
+            show_usage
+            exit 0
+            ;;
+        -r|--resolve)
+            resolve=1
+            shift
+            ;;
+        --)
+            shift
+            while [ $# -gt 0 ]; do
+                programs+=("$1")
+                shift
+            done
+            break
+            ;;
+        -*)
+            echo "whichdir: unknown option: $1" >&2
+            show_usage >&2
+            exit 1
+            ;;
+        *)
+            programs+=("$1")
+            shift
+            ;;
+    esac
+done
+
+if [ ${#programs[@]} -eq 0 ]; then
+    show_usage >&2
+    exit 1
+fi
+
+ret=0
+for prog in "${programs[@]}"; do
+    p=$(which "$prog" 2>/dev/null)
+    if [ $? -eq 0 ] && [ -n "$p" ]; then
+        if [ $resolve -eq 1 ] && command -v realpath >/dev/null 2>&1; then
+            p=$(realpath "$p")
+        fi
+        dirname "$p"
+    else
+        echo "whichdir: $prog not found" >&2
+        ret=1
+    fi
+done
+
+exit $ret

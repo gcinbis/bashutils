@@ -63,6 +63,7 @@ Gokberk Cinbis, 2018-2026.
 * `strrep`                                      String find-and-replace.
 * `tmux-parallel-exec-at-dirs`                  Execute one command in parallel at multiple directories within tmux panes & windows.
 * `tmux-parallel-exec`                          Execute multiple commands in parallel within tmux panes & windows.
+* `whichdir`                                    Print the directory path containing an executable found in PATH.
 
 ## File conversion
 
